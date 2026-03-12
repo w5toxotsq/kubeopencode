@@ -58,7 +58,7 @@ RUN set -ex; \
     FILENAME="opencode-linux-${ARCH}.tar.gz"; \
     URL="https://github.com/anomalyco/opencode/releases/download/v${OPENCODE_VERSION}/${FILENAME}"; \
     echo "Downloading OpenCode v${OPENCODE_VERSION} from ${URL}..."; \
-    curl -fsSL "${URL}" -o /tmp/opencode.tar.gz; \
+    curl --retry 5 --retry-delay 3 --retry-all-errors -fsSL "${URL}" -o /tmp/opencode.tar.gz; \
     tar -xzf /tmp/opencode.tar.gz -C /tmp; \
     mv /tmp/opencode /opencode; \
     chmod +x /opencode; \
