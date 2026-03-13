@@ -1553,4 +1553,3 @@ func (r *TaskReconciler) recordTaskDuration(task *kubeopenv1alpha1.Task) {
 	}
 	TaskDurationSeconds.WithLabelValues(task.Namespace, agentName).Observe(duration)
 }
-

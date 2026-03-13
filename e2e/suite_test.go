@@ -28,11 +28,11 @@ import (
 )
 
 var (
-	k8sClient  client.Client
-	clientset  *kubernetes.Clientset
-	ctx        context.Context
-	cancel     context.CancelFunc
-	scheme     *runtime.Scheme
+	k8sClient client.Client
+	clientset *kubernetes.Clientset
+	ctx       context.Context
+	cancel    context.CancelFunc
+	scheme    *runtime.Scheme
 	testNS    string
 	echoImage string
 )
