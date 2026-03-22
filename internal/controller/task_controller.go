@@ -80,6 +80,11 @@ func isTaskFinished(phase kubeopenv1alpha1.TaskPhase) bool {
 	return phase == kubeopenv1alpha1.TaskPhaseCompleted || phase == kubeopenv1alpha1.TaskPhaseFailed
 }
 
+// isTaskStoppedByUser returns true if the task has been marked for stopping via annotation.
+func isTaskStoppedByUser(task *kubeopenv1alpha1.Task) bool {
+	return task.Annotations != nil && task.Annotations[AnnotationStop] == "true"
+}
+
 // TaskReconciler reconciles a Task object
 type TaskReconciler struct {
 	client.Client
@@ -134,7 +139,7 @@ func (r *TaskReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 
 	// Check for user-initiated stop (only for Running tasks)
 	if task.Status.Phase == kubeopenv1alpha1.TaskPhaseRunning {
-		if task.Annotations != nil && task.Annotations[AnnotationStop] == "true" {
+		if isTaskStoppedByUser(task) {
 			return r.handleStop(ctx, task)
 		}
 	}
@@ -979,7 +984,7 @@ func (r *TaskReconciler) handleQueuedTask(ctx context.Context, task *kubeopenv1a
 	log := log.FromContext(ctx)
 
 	// Check for user-initiated stop (Queued tasks can also be stopped)
-	if task.Annotations != nil && task.Annotations[AnnotationStop] == "true" {
+	if isTaskStoppedByUser(task) {
 		log.Info("user-initiated stop detected for queued task", "task", task.Name)
 
 		task.Status.ObservedGeneration = task.Generation
