@@ -149,6 +149,21 @@ server:
   # Affinity for server pods
   affinity: {}
 
+  # Port-forward RBAC configuration
+  # Creates a Role/RoleBinding to allow specific subjects to port-forward
+  # the UI server (kubectl port-forward svc/kubeopencode-server).
+  portForward:
+    enabled: false
+    # Subjects to grant port-forward access to
+    # Example:
+    #   subjects:
+    #     - kind: ServiceAccount
+    #       name: my-sa
+    #       namespace: my-namespace
+    #     - kind: User
+    #       name: developer@example.com
+    subjects: []
+
 # KubeOpenCodeConfig - system-level configuration
 # This creates a default KubeOpenCodeConfig in the release namespace
 kubeopencodeConfig:

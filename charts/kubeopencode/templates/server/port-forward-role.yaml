@@ -1,0 +1,16 @@
+{{- if and .Values.server.enabled .Values.server.portForward.enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "kubeopencode.fullname" . }}-port-forward
+  namespace: {{ include "kubeopencode.namespace" . }}
+  labels:
+    {{- include "kubeopencode.server.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/portforward"]
+    verbs: ["create", "get"]
+{{- end }}
