@@ -91,6 +91,11 @@ build:
 	go build -ldflags '$(GO_LD_FLAGS)' -o bin/kubeopencode ./cmd/kubeopencode
 .PHONY: build
 
+# Build koc CLI binary
+build-koc:
+	go build -ldflags '$(GO_LD_FLAGS)' -o bin/koc ./cmd/koc
+.PHONY: build-koc
+
 # Test runs unit tests only.
 # Integration tests are excluded via build tags (//go:build integration).
 # This follows the Kubernetes ecosystem convention (kubebuilder, controller-runtime)
@@ -385,17 +390,25 @@ e2e-test-focus: ## Run specific e2e test (usage: make e2e-test-focus FOCUS="Task
 .PHONY: e2e-test-focus
 
 # Run e2e tests by label (recommended)
-# Available labels: task, workflow, agent, cronworkflow, session
+# Available labels: task, agent, server, opencode
 # Examples:
-#   make e2e-test-label LABEL="workflow"
-#   make e2e-test-label LABEL="workflow || cronworkflow"
-#   make e2e-test-label LABEL="!cronworkflow"
-e2e-test-label: ## Run e2e tests by label (usage: make e2e-test-label LABEL="workflow")
+#   make e2e-test-label LABEL="server"
+#   make e2e-test-label LABEL="server || agent"
+#   make e2e-test-label LABEL="!opencode"
+e2e-test-label: ## Run e2e tests by label (usage: make e2e-test-label LABEL="server")
 	@echo "Running e2e tests with label: $(LABEL)..."
 	E2E_TEST_NAMESPACE=kubeopencode-e2e-test \
 	E2E_ECHO_IMAGE=quay.io/kubeopencode/kubeopencode-agent-echo:latest \
 	go test -v ./e2e/... -timeout 30m -ginkgo.v -ginkgo.label-filter="$(LABEL)"
 .PHONY: e2e-test-label
+
+# Run OpenCode e2e tests only (uses free models, no API key needed)
+e2e-test-opencode: ## Run OpenCode integration tests with free models
+	@echo "Running OpenCode e2e tests (free model: opencode/big-pickle)..."
+	E2E_TEST_NAMESPACE=kubeopencode-e2e-test \
+	E2E_ECHO_IMAGE=quay.io/kubeopencode/kubeopencode-agent-echo:latest \
+	go test -v ./e2e/... -timeout 30m -ginkgo.v -ginkgo.label-filter="opencode"
+.PHONY: e2e-test-opencode
 
 # Full e2e test workflow (setup, test, teardown)
 e2e: e2e-setup e2e-test ## Run full e2e test workflow
