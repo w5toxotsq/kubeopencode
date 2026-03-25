@@ -28,12 +28,16 @@ var rootCmd = &cobra.Command{
 	Long: `koc is the KubeOpenCode CLI for interactive agent sessions.
 
 Commands:
+  agent attach    One-click attach to a server-mode agent (port-forward + TUI)
   session watch   Stream agent events for a task (read-only)
-  session attach  Interactively attach to an agent session (HITL)
+  session attach  Interactively attach to an agent session
+
+Install:
+  go install github.com/kubeopencode/kubeopencode/cmd/koc@latest
 
 Examples:
-  koc session watch my-task -n kubeopencode-system
-  koc session attach my-task -n kubeopencode-system`,
+  koc agent attach server-agent -n test
+  koc session watch my-task -n test`,
 }
 
 func main() {

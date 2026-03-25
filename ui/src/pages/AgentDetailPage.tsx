@@ -34,35 +34,76 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
-function ServerConnectCommands({ namespace, deploymentName, port }: { namespace: string; deploymentName: string; port: number }) {
+function ServerConnectCommands({ namespace, agentName, deploymentName, port }: { namespace: string; agentName: string; deploymentName: string; port: number }) {
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const kocCmd = `koc agent attach ${agentName} -n ${namespace}`;
+  const goInstallCmd = 'go install github.com/kubeopencode/kubeopencode/cmd/koc@latest';
   const portForwardCmd = `kubectl port-forward -n ${namespace} deployment/${deploymentName} ${port}:${port}`;
   const attachCmd = `opencode attach http://localhost:${port}`;
-  const combinedCmd = `${portForwardCmd} &\nsleep 2 && ${attachCmd}`;
+  const aliasCmd = `alias koc-${agentName}='kubectl port-forward -n ${namespace} deployment/${deploymentName} ${port}:${port} & sleep 2 && opencode attach http://localhost:${port}'`;
 
   return (
     <div>
       <h3 className="text-[11px] font-display font-medium text-stone-400 uppercase tracking-wider mb-3">Quick Connect</h3>
       <div className="space-y-3">
+        {/* Option 1: koc CLI (recommended) */}
         <div>
-          <p className="text-xs text-stone-500 mb-1.5">1. Port-forward to server</p>
+          <p className="text-xs text-stone-500 mb-1.5">
+            <span className="font-medium text-stone-600">Recommended:</span> One-click attach via koc CLI
+          </p>
           <div className="flex items-center gap-2 bg-stone-900 rounded-lg px-4 py-2.5 border border-stone-700">
-            <code className="text-xs text-emerald-400 font-mono flex-1 break-all">{portForwardCmd}</code>
-            <CopyButton text={portForwardCmd} />
+            <code className="text-xs text-emerald-400 font-mono flex-1">{kocCmd}</code>
+            <CopyButton text={kocCmd} />
+          </div>
+          <div className="mt-1.5 bg-stone-50 rounded-lg px-3 py-2 border border-stone-100">
+            <p className="text-[11px] text-stone-400">
+              Install koc CLI:{' '}
+              <code className="bg-stone-100 px-1.5 py-0.5 rounded text-stone-500 font-mono select-all cursor-pointer">{goInstallCmd}</code>
+            </p>
           </div>
         </div>
+
+        {/* Option 2: Manual commands */}
         <div>
-          <p className="text-xs text-stone-500 mb-1.5">2. Attach to server (in another terminal)</p>
-          <div className="flex items-center gap-2 bg-stone-900 rounded-lg px-4 py-2.5 border border-stone-700">
-            <code className="text-xs text-sky-400 font-mono flex-1 break-all">{attachCmd}</code>
-            <CopyButton text={attachCmd} />
-          </div>
+          <button
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            className="text-xs text-stone-400 hover:text-stone-600 transition-colors flex items-center gap-1"
+          >
+            <svg className={`w-3 h-3 transition-transform ${showAdvanced ? 'rotate-90' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Manual: port-forward + opencode attach
+          </button>
+          {showAdvanced && (
+            <div className="mt-2 space-y-2 pl-4 border-l-2 border-stone-100">
+              <div>
+                <p className="text-xs text-stone-400 mb-1">1. Port-forward</p>
+                <div className="flex items-center gap-2 bg-stone-900 rounded-lg px-3 py-2 border border-stone-700">
+                  <code className="text-[11px] text-emerald-400 font-mono flex-1 break-all">{portForwardCmd}</code>
+                  <CopyButton text={portForwardCmd} />
+                </div>
+              </div>
+              <div>
+                <p className="text-xs text-stone-400 mb-1">2. Attach (another terminal)</p>
+                <div className="flex items-center gap-2 bg-stone-900 rounded-lg px-3 py-2 border border-stone-700">
+                  <code className="text-[11px] text-sky-400 font-mono flex-1 break-all">{attachCmd}</code>
+                  <CopyButton text={attachCmd} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-        <div>
-          <p className="text-xs text-stone-500 mb-1.5">Or combined (one-liner)</p>
-          <div className="flex items-center gap-2 bg-stone-900 rounded-lg px-4 py-2.5 border border-stone-700">
-            <code className="text-xs text-amber-400 font-mono flex-1 break-all whitespace-pre-wrap">{combinedCmd}</code>
-            <CopyButton text={combinedCmd} />
+
+        {/* Shell alias tip */}
+        <div className="bg-amber-50/50 rounded-lg px-3 py-2 border border-amber-100">
+          <p className="text-[11px] text-amber-600 mb-1">
+            <span className="font-medium">Tip:</span> Add a shell alias for one-click access
+          </p>
+          <div className="flex items-center gap-2 bg-amber-900/5 rounded px-2 py-1.5">
+            <code className="text-[10px] text-amber-700 font-mono flex-1 break-all">{aliasCmd}</code>
+            <CopyButton text={aliasCmd} />
           </div>
+          <p className="text-[10px] text-amber-400 mt-1">Add to ~/.zshrc or ~/.bashrc, then run: <code className="font-mono">koc-{agentName}</code></p>
         </div>
       </div>
     </div>
@@ -219,6 +260,7 @@ function AgentDetailPage() {
           {agent.mode === 'Server' && agent.serverStatus && (
             <ServerConnectCommands
               namespace={agent.namespace}
+              agentName={agent.name}
               deploymentName={agent.serverStatus.deploymentName || ''}
               port={agent.serverStatus.port || 4096}
             />
