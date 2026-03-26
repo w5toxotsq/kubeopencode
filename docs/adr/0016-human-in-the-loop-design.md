@@ -684,14 +684,14 @@ endpoints, HITLPanel component) was implemented but is secondary to the TUI-base
 
 **Frontend (Web UI):**
 - `HITLPanel.tsx` — SSE event streaming, permission/question UI, message input
-- `AgentDetailPage.tsx` — Quick Connect section with koc CLI, manual steps, shell alias tips
+- `AgentDetailPage.tsx` — Quick Connect section with KubeOpenCode CLI, manual steps, shell alias tips
 - `TaskCreatePage.tsx` — Server-mode agent context limitation note
 - `TaskDetailPage.tsx` — HITLPanel integration for running tasks
 
 **CLI:**
-- `cmd/koc/` — Independent `koc` CLI binary
-- `koc agent attach` — One-click server agent attach (port-forward + opencode attach)
-- `koc session watch/attach` — Task event streaming and HITL interaction
+- `cmd/cli/` — Independent `kubeopencode` CLI binary
+- `kubeopencode agent attach` — One-click server agent attach (port-forward + opencode attach)
+- `kubeopencode session watch/attach` — Task event streaming and HITL interaction
 
 ### Architecture Decision: task-submit vs opencode run --attach
 

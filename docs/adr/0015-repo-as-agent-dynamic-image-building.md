@@ -239,7 +239,7 @@ Document how to use GitHub Actions, Tekton, or ArgoCD to build agent images. No 
 
 ### Alternative 2: CLI Tool for Local Builds
 
-Provide `koc agent build --from-repo <url>` that builds locally and pushes.
+Provide `kubeopencode agent build --from-repo <url>` that builds locally and pushes.
 
 **Rejected because**: Requires local Docker/BuildKit installation. Not GitOps-friendly. Manual step in the workflow.
 

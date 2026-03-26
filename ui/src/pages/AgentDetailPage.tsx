@@ -36,20 +36,20 @@ function CopyButton({ text }: { text: string }) {
 
 function ServerConnectCommands({ namespace, agentName, deploymentName, port }: { namespace: string; agentName: string; deploymentName: string; port: number }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const kocCmd = `koc agent attach ${agentName} -n ${namespace}`;
-  const goInstallCmd = 'go install github.com/kubeopencode/kubeopencode/cmd/koc@latest';
+  const kocCmd = `kubeopencode agent attach ${agentName} -n ${namespace}`;
+  const goInstallCmd = 'go install github.com/kubeopencode/kubeopencode/cmd/cli@latest';
   const portForwardCmd = `kubectl port-forward -n ${namespace} deployment/${deploymentName} ${port}:${port}`;
   const attachCmd = `opencode attach http://localhost:${port}`;
-  const aliasCmd = `alias koc-${agentName}='kubectl port-forward -n ${namespace} deployment/${deploymentName} ${port}:${port} & sleep 2 && opencode attach http://localhost:${port}'`;
+  const aliasCmd = `alias kubeopencode-${agentName}='kubectl port-forward -n ${namespace} deployment/${deploymentName} ${port}:${port} & sleep 2 && opencode attach http://localhost:${port}'`;
 
   return (
     <div>
       <h3 className="text-[11px] font-display font-medium text-stone-400 uppercase tracking-wider mb-3">Quick Connect</h3>
       <div className="space-y-3">
-        {/* Option 1: koc CLI (recommended) */}
+        {/* Option 1: KubeOpenCode CLI (recommended) */}
         <div>
           <p className="text-xs text-stone-500 mb-1.5">
-            <span className="font-medium text-stone-600">Recommended:</span> One-click attach via koc CLI
+            <span className="font-medium text-stone-600">Recommended:</span> One-click attach via KubeOpenCode CLI
           </p>
           <div className="flex items-center gap-2 bg-stone-900 rounded-lg px-4 py-2.5 border border-stone-700">
             <code className="text-xs text-emerald-400 font-mono flex-1">{kocCmd}</code>
@@ -57,7 +57,7 @@ function ServerConnectCommands({ namespace, agentName, deploymentName, port }: {
           </div>
           <div className="mt-1.5 bg-stone-50 rounded-lg px-3 py-2 border border-stone-100">
             <p className="text-[11px] text-stone-400">
-              Install koc CLI:{' '}
+              Install KubeOpenCode CLI:{' '}
               <code className="bg-stone-100 px-1.5 py-0.5 rounded text-stone-500 font-mono select-all cursor-pointer">{goInstallCmd}</code>
             </p>
           </div>
@@ -103,7 +103,7 @@ function ServerConnectCommands({ namespace, agentName, deploymentName, port }: {
             <code className="text-[10px] text-amber-700 font-mono flex-1 break-all">{aliasCmd}</code>
             <CopyButton text={aliasCmd} />
           </div>
-          <p className="text-[10px] text-amber-400 mt-1">Add to ~/.zshrc or ~/.bashrc, then run: <code className="font-mono">koc-{agentName}</code></p>
+          <p className="text-[10px] text-amber-400 mt-1">Add to ~/.zshrc or ~/.bashrc, then run: <code className="font-mono">kubeopencode-{agentName}</code></p>
         </div>
       </div>
     </div>

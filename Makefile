@@ -91,10 +91,10 @@ build:
 	go build -ldflags '$(GO_LD_FLAGS)' -o bin/kubeopencode ./cmd/kubeopencode
 .PHONY: build
 
-# Build koc CLI binary
-build-koc:
-	go build -ldflags '$(GO_LD_FLAGS)' -o bin/koc ./cmd/koc
-.PHONY: build-koc
+# Build KubeOpenCode CLI binary
+build-cli:
+	go build -ldflags '$(GO_LD_FLAGS)' -o bin/kubeopencode-cli ./cmd/cli
+.PHONY: build-cli
 
 # Test runs unit tests only.
 # Integration tests are excluded via build tags (//go:build integration).

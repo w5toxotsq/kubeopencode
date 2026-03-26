@@ -51,8 +51,8 @@ This command:
   5. Cleans up port-forward on exit
 
 Examples:
-  koc agent attach server-agent -n test
-  koc agent attach my-agent -n production --local-port 5000`,
+  kubeopencode agent attach server-agent -n test
+  kubeopencode agent attach my-agent -n production --local-port 5000`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runAgentAttach(cmd.Context(), namespace, args[0], localPort)
