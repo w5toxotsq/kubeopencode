@@ -334,10 +334,19 @@ function Layout() {
               title="Agents"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="10" rx="2" />
-                <path d="M12 2a2 2 0 012 2v7H10V4a2 2 0 012-2z" />
-                <circle cx="8.5" cy="15.5" r="1.5" />
-                <circle cx="15.5" cy="15.5" r="1.5" />
+                {/* antenna */}
+                <line x1="12" y1="2" x2="12" y2="6" />
+                <circle cx="12" cy="2" r="1" fill="currentColor" />
+                {/* head */}
+                <rect x="4" y="6" width="16" height="12" rx="2" />
+                {/* eyes */}
+                <circle cx="9" cy="12" r="1.5" />
+                <circle cx="15" cy="12" r="1.5" />
+                {/* mouth */}
+                <line x1="9" y1="16" x2="15" y2="16" />
+                {/* ears */}
+                <line x1="2" y1="10" x2="4" y2="10" />
+                <line x1="20" y1="10" x2="22" y2="10" />
               </svg>
             </NavLink>
 
