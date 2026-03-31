@@ -229,6 +229,7 @@ ui-install: ## Install UI dependencies
 
 ui-build: ## Build React UI for production
 	@echo "Building React UI..."
+	@rm -rf ui/dist
 	cd ui && $(UI_PACKAGE_MANAGER) run build
 	@echo "UI build complete"
 .PHONY: ui-build
