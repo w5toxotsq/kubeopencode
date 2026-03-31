@@ -97,6 +97,17 @@ rules:
   - update
   - patch
   - delete
+# PersistentVolumeClaims (for Server-mode session persistence)
+- apiGroups:
+  - ""
+  resources:
+  - persistentvolumeclaims
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
 # Deployments (for Server-mode Agents)
 - apiGroups:
   - apps
