@@ -80,6 +80,6 @@ describe('ConfirmDialog', () => {
   it('applies default variant styles to confirm button', () => {
     render(<ConfirmDialog {...defaultProps} variant="default" />);
     const confirmButton = screen.getByText('Confirm');
-    expect(confirmButton.className).toContain('bg-stone-900');
+    expect(confirmButton.className).toContain('bg-primary-600');
   });
 });

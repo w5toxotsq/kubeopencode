@@ -47,7 +47,7 @@ function ConfirmDialog({
       ? 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white'
       : variant === 'warning'
         ? 'bg-amber-600 hover:bg-amber-700 focus:ring-amber-500 text-white'
-        : 'bg-stone-900 hover:bg-stone-800 focus:ring-stone-500 text-white';
+        : 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500 text-white';
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">

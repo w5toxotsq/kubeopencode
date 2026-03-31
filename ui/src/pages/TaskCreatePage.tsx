@@ -267,7 +267,7 @@ function TaskCreatePage() {
             <button
               type="submit"
               disabled={createMutation.isPending || !isValid}
-              className="px-5 py-2.5 text-sm font-medium text-white bg-stone-900 rounded-lg hover:bg-stone-800 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               {createMutation.isPending ? 'Creating...' : 'Create Task'}
             </button>
