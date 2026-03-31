@@ -125,12 +125,11 @@ For iterative e2e testing (after full flow ran once in this session):
 make e2e-reload     # Rebuild + reload controller image + run e2e-test
 ```
 
-> **CRITICAL**: `e2e-reload` is ONLY for e2e testing (hardcoded Kind cluster `kubeopencode`). For local-dev, follow `deploy/local-dev/local-development.md`:
+> **CRITICAL**: `e2e-reload` is ONLY for e2e testing (hardcoded Kind cluster `kubeopencode-e2e`). For local-dev, use:
 > ```bash
-> make docker-build
-> kind load docker-image quay.io/kubeopencode/kubeopencode:latest --name <your-cluster-name>
-> kubectl rollout restart deployment/kubeopencode-server -n kubeopencode-system
+> make local-dev-reload
 > ```
+> This rebuilds the image (with both `:VERSION` and `:latest` tags), loads into Kind, and restarts all deployments. Never manually run `docker-build` + `kind load` for local-dev — use `local-dev-reload` to avoid tag mismatches.
 
 ### Docker, Registry, and Deployment
 

@@ -140,12 +140,15 @@ verify: check-env
 ##@ Docker
 
 # Build the docker image (includes UI build)
+# Always tags as both :VERSION and :latest so Kind/local-dev clusters work without extra steps
 docker-build: ui-build
 	docker build \
 		--build-arg VERSION=$(VERSION) \
 		--build-arg GIT_COMMIT=$(GIT_COMMIT) \
 		--build-arg BUILD_TIME=$(BUILD_DATE) \
-		-t $(IMG) .
+		-t $(IMG) \
+		-t $(IMG_REGISTRY)/$(IMG_ORG)/$(IMG_NAME):latest \
+		.
 .PHONY: docker-build
 
 # Push the docker image
@@ -446,9 +449,8 @@ local-dev-setup: ## One-command local dev setup: cluster, images, helm, test res
 		echo "  Building agent: $$agent"; \
 		$(MAKE) agent-build AGENT=$$agent; \
 	done
-	@# Step 3: Tag as latest and load into Kind
-	@echo "[3/5] Tagging and loading images into Kind..."
-	@docker tag $(LOCAL_DEV_CONTROLLER_IMG):$(VERSION) $(LOCAL_DEV_CONTROLLER_IMG):latest 2>/dev/null || true
+	@# Step 3: Load images into Kind (docker-build already tags :latest)
+	@echo "[3/5] Loading images into Kind..."
 	@kind load docker-image $(LOCAL_DEV_CONTROLLER_IMG):latest --name $(LOCAL_DEV_CLUSTER)
 	@for img in $(LOCAL_DEV_AGENT_IMGS); do \
 		docker tag $$img:$(VERSION) $$img:latest 2>/dev/null || true; \
@@ -482,7 +484,6 @@ local-dev-reload: ## Rebuild and reload all images into local dev cluster
 	@for agent in $(LOCAL_DEV_AGENTS); do \
 		$(MAKE) agent-build AGENT=$$agent; \
 	done
-	@docker tag $(LOCAL_DEV_CONTROLLER_IMG):$(VERSION) $(LOCAL_DEV_CONTROLLER_IMG):latest 2>/dev/null || true
 	@kind load docker-image $(LOCAL_DEV_CONTROLLER_IMG):latest --name $(LOCAL_DEV_CLUSTER)
 	@for img in $(LOCAL_DEV_AGENT_IMGS); do \
 		docker tag $$img:$(VERSION) $$img:latest 2>/dev/null || true; \

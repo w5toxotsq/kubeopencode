@@ -258,57 +258,29 @@ make ui-build
 
 ## Iterative Development
 
-### Controller Changes
+### Controller or UI Changes
 
-When you make changes to the controller code:
+Use the convenience target to rebuild and reload all images:
 
 ```bash
-# Rebuild the image
-make docker-build
-
-# Reload into Kind
-kind load docker-image quay.io/kubeopencode/kubeopencode:latest --name kubeopencode
-
-# Restart the deployment to pick up the new image
-kubectl rollout restart deployment/kubeopencode-controller -n kubeopencode-system
-
-# Watch the rollout
-kubectl rollout status deployment/kubeopencode-controller -n kubeopencode-system
+make local-dev-reload
 ```
 
-Or use the convenience target:
+This single command rebuilds the Docker image (including UI), loads it into the Kind cluster, and restarts all deployments.
+
+> **Note:** `make docker-build` automatically tags the image as both `:VERSION` and `:latest`, so you never need to manually `docker tag` before loading into Kind.
+
+For faster UI iteration during development, use the dev server instead (no Docker rebuild needed):
 
 ```bash
-make e2e-reload
-```
-
-### UI Changes
-
-When you make changes to the UI code:
-
-```bash
-# Rebuild the UI and docker image
-make ui-build
-make docker-build
-
-# Reload into Kind
-kind load docker-image quay.io/kubeopencode/kubeopencode:latest --name kubeopencode
-
-# Restart the server deployment
-kubectl rollout restart deployment/kubeopencode-server -n kubeopencode-system
-```
-
-For faster iteration during UI development, use the dev server instead:
-
-```bash
-# Run Go server locally (uses kubeconfig for API access)
+# Terminal 1: Run Go server locally (uses kubeconfig for API access)
 make run-server
 
-# In another terminal, run webpack dev server with hot-reload
+# Terminal 2: Run webpack dev server with hot-reload
 make ui-dev
 ```
 
-This provides instant feedback without rebuilding Docker images.
+This provides instant feedback at http://localhost:3000 without rebuilding Docker images.
 
 ## Local Test Environment
 
