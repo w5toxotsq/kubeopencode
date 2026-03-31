@@ -6,46 +6,32 @@ import Labels from '../components/Labels';
 import Skeleton from '../components/Skeleton';
 import ResourceFilter from '../components/ResourceFilter';
 import { useFilterState } from '../hooks/useFilterState';
-import { getNamespaceCookie, setNamespaceCookie } from '../utils/cookies';
+import { useNamespace } from '../contexts/NamespaceContext';
 import { LABEL_AGENT_TEMPLATE, FILTER_HAS_TEMPLATE, FILTER_NO_TEMPLATE, appendLabelSelector } from '../utils/labels';
 
 const PAGE_SIZE = 12;
 
 function AgentsPage() {
-  const [selectedNamespace, setSelectedNamespace] = useState<string>(() => {
-    return getNamespaceCookie() || '';
-  });
+  const { namespace, isAllNamespaces } = useNamespace();
   const [currentPage, setCurrentPage] = useState(1);
   const [templateFilter, setTemplateFilter] = useState('');
   const [filters, setFilters] = useFilterState();
 
-  const handleNamespaceChange = (newNamespace: string) => {
-    setSelectedNamespace(newNamespace);
-    if (newNamespace) {
-      setNamespaceCookie(newNamespace);
-    }
-  };
-
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedNamespace, templateFilter, filters.name, filters.labelSelector]);
+  }, [namespace, templateFilter, filters.name, filters.labelSelector]);
 
   // Reset template filter when namespace changes
   useEffect(() => {
     setTemplateFilter('');
-  }, [selectedNamespace]);
-
-  const { data: namespacesData } = useQuery({
-    queryKey: ['namespaces'],
-    queryFn: () => api.getNamespaces(),
-  });
+  }, [namespace]);
 
   const { data: templatesData } = useQuery({
-    queryKey: ['templates-for-filter', selectedNamespace],
+    queryKey: ['templates-for-filter', namespace],
     queryFn: () =>
-      selectedNamespace
-        ? api.listAgentTemplates(selectedNamespace, { limit: 100, sortOrder: 'asc' })
-        : api.listAllAgentTemplates({ limit: 100, sortOrder: 'asc' }),
+      isAllNamespaces
+        ? api.listAllAgentTemplates({ limit: 100, sortOrder: 'asc' })
+        : api.listAgentTemplates(namespace, { limit: 100, sortOrder: 'asc' }),
     staleTime: 60_000,
   });
 
@@ -55,7 +41,7 @@ function AgentsPage() {
   );
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['agents', selectedNamespace, currentPage, templateFilter, filters.name, filters.labelSelector],
+    queryKey: ['agents', namespace, currentPage, templateFilter, filters.name, filters.labelSelector],
     queryFn: () => {
       let labelSelector = filters.labelSelector || '';
       if (templateFilter === FILTER_HAS_TEMPLATE) {
@@ -72,9 +58,9 @@ function AgentsPage() {
         offset: (currentPage - 1) * PAGE_SIZE,
         sortOrder: 'desc' as const,
       };
-      return selectedNamespace
-        ? api.listAgents(selectedNamespace, params)
-        : api.listAllAgents(params);
+      return isAllNamespaces
+        ? api.listAllAgents(params)
+        : api.listAgents(namespace, params);
     },
   });
 
@@ -86,20 +72,6 @@ function AgentsPage() {
           <p className="mt-1 text-sm text-stone-500">
             Browse available AI agents for task execution
           </p>
-        </div>
-        <div className="mt-4 sm:mt-0">
-          <select
-            value={selectedNamespace}
-            onChange={(e) => handleNamespaceChange(e.target.value)}
-            className="block w-full sm:w-48 rounded-lg border-stone-200 bg-white shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-stone-700"
-          >
-            <option value="">All Namespaces</option>
-            {namespacesData?.namespaces.map((ns) => (
-              <option key={ns} value={ns}>
-                {ns}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 

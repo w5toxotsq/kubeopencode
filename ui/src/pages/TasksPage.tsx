@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/client';
 import StatusBadge from '../components/StatusBadge';
@@ -8,42 +8,19 @@ import TimeAgo from '../components/TimeAgo';
 import ResourceFilter from '../components/ResourceFilter';
 import { TableSkeleton } from '../components/Skeleton';
 import { useFilterState } from '../hooks/useFilterState';
-import { getNamespaceCookie, setNamespaceCookie } from '../utils/cookies';
+import { useNamespace } from '../contexts/NamespaceContext';
 import { LABEL_AGENT, appendLabelSelector } from '../utils/labels';
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
-const ALL_NAMESPACES = '__all__';
 const PHASE_OPTIONS = ['', 'Pending', 'Queued', 'Running', 'Completed', 'Failed'];
 
 function TasksPage() {
-  const [searchParams] = useSearchParams();
-  const [namespace, setNamespace] = useState(() => {
-    const urlParam = new URLSearchParams(window.location.search).get('namespace');
-    if (urlParam) return urlParam;
-    return getNamespaceCookie() || 'default';
-  });
+  const { namespace, isAllNamespaces } = useNamespace();
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [phaseFilter, setPhaseFilter] = useState('');
   const [agentFilter, setAgentFilter] = useState('');
   const [filters, setFilters] = useFilterState();
-
-  useEffect(() => {
-    const namespaceParam = searchParams.get('namespace');
-    if (namespaceParam && namespaceParam !== namespace) {
-      setNamespace(namespaceParam);
-      if (namespaceParam !== ALL_NAMESPACES) {
-        setNamespaceCookie(namespaceParam);
-      }
-    }
-  }, [searchParams, namespace]);
-
-  const handleNamespaceChange = (newNamespace: string) => {
-    setNamespace(newNamespace);
-    if (newNamespace !== ALL_NAMESPACES) {
-      setNamespaceCookie(newNamespace);
-    }
-  };
 
   useEffect(() => {
     setCurrentPage(1);
@@ -53,13 +30,6 @@ function TasksPage() {
   useEffect(() => {
     setAgentFilter('');
   }, [namespace]);
-
-  const { data: namespacesData } = useQuery({
-    queryKey: ['namespaces'],
-    queryFn: () => api.getNamespaces(),
-  });
-
-  const isAllNamespaces = namespace === ALL_NAMESPACES;
 
   const { data: agentsData } = useQuery({
     queryKey: ['agents-for-filter', namespace],
@@ -106,21 +76,9 @@ function TasksPage() {
             Manage and monitor AI agent tasks
           </p>
         </div>
-        <div className="mt-4 sm:mt-0 flex items-center space-x-3">
-          <select
-            value={namespace}
-            onChange={(e) => handleNamespaceChange(e.target.value)}
-            className="block w-48 rounded-lg border-stone-200 bg-white shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-stone-700"
-          >
-            <option value={ALL_NAMESPACES}>All Namespaces</option>
-            {namespacesData?.namespaces.map((ns) => (
-              <option key={ns} value={ns}>
-                {ns}
-              </option>
-            ))}
-          </select>
+        <div className="mt-4 sm:mt-0">
           <Link
-            to={`/tasks/create?namespace=${namespace}`}
+            to="/tasks/create"
             className="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-stone-900 rounded-lg hover:bg-stone-800 transition-colors shadow-sm"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -222,7 +180,7 @@ function TasksPage() {
                   <td colSpan={isAllNamespaces ? 7 : 6} className="px-5 py-12 text-center text-stone-400 text-sm">
                     No tasks found.{' '}
                     {!isAllNamespaces && (
-                      <Link to={`/tasks/create?namespace=${namespace}`} className="text-primary-600 hover:text-primary-700 font-medium">
+                      <Link to="/tasks/create" className="text-primary-600 hover:text-primary-700 font-medium">
                         Create your first task
                       </Link>
                     )}

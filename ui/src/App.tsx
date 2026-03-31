@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+import { NamespaceProvider } from './contexts/NamespaceContext';
 import DashboardPage from './pages/DashboardPage';
 import TasksPage from './pages/TasksPage';
 import TaskDetailPage from './pages/TaskDetailPage';
@@ -13,6 +14,7 @@ import ConfigPage from './pages/ConfigPage';
 function App() {
   return (
     <BrowserRouter>
+      <NamespaceProvider>
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<DashboardPage />} />
@@ -26,6 +28,7 @@ function App() {
           <Route path="config" element={<ConfigPage />} />
         </Route>
       </Routes>
+      </NamespaceProvider>
     </BrowserRouter>
   );
 }

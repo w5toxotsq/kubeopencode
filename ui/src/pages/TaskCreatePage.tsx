@@ -3,13 +3,25 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import api, { CreateTaskRequest } from '../api/client';
 import { useToast } from '../contexts/ToastContext';
+import { useNamespace } from '../contexts/NamespaceContext';
 import Breadcrumbs from '../components/Breadcrumbs';
 
 function TaskCreatePage() {
   const navigate = useNavigate();
   const { addToast } = useToast();
   const [searchParams] = useSearchParams();
-  const [namespace, setNamespace] = useState('default');
+  const { namespace: globalNamespace, isAllNamespaces, setNamespace: setGlobalNamespace } = useNamespace();
+  const [namespace, setNamespace] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nsParam = params.get('namespace');
+    if (nsParam) return nsParam;
+    const agentParam = params.get('agent');
+    if (agentParam) {
+      const agentNs = agentParam.split('/')[0];
+      if (agentNs) return agentNs;
+    }
+    return isAllNamespaces ? 'default' : globalNamespace;
+  });
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedAgent, setSelectedAgent] = useState('');
@@ -25,7 +37,7 @@ function TaskCreatePage() {
   });
 
   const rerunTaskName = searchParams.get('rerun');
-  const rerunNamespace = searchParams.get('namespace') || 'default';
+  const rerunNamespace = searchParams.get('namespace') || namespace;
   const { data: rerunTask } = useQuery({
     queryKey: ['task', rerunNamespace, rerunTaskName],
     queryFn: () => api.getTask(rerunNamespace, rerunTaskName!),
@@ -33,10 +45,6 @@ function TaskCreatePage() {
   });
 
   useEffect(() => {
-    const namespaceParam = searchParams.get('namespace');
-    if (namespaceParam) {
-      setNamespace(namespaceParam);
-    }
     const agentParam = searchParams.get('agent');
     if (agentParam) {
       setSelectedAgent(agentParam);
@@ -55,6 +63,7 @@ function TaskCreatePage() {
       if (rerunTask.agentRef) {
         const agentKey = `${rerunTask.namespace}/${rerunTask.agentRef.name}`;
         setSelectedAgent(agentKey);
+        setNamespace(rerunTask.namespace);
       }
     }
   }, [rerunTask]);
@@ -66,6 +75,7 @@ function TaskCreatePage() {
 
   const handleNamespaceChange = (newNamespace: string) => {
     setNamespace(newNamespace);
+    setGlobalNamespace(newNamespace);
     if (selectedAgent) {
       const agent = agentsData?.agents.find(
         (a) => `${a.namespace}/${a.name}` === selectedAgent
@@ -119,7 +129,7 @@ function TaskCreatePage() {
   return (
     <div className="animate-fade-in">
       <Breadcrumbs items={[
-        { label: 'Tasks', to: `/tasks?namespace=${namespace}` },
+        { label: 'Tasks', to: '/tasks' },
         { label: 'Create Task' },
       ]} />
 
@@ -249,7 +259,7 @@ function TaskCreatePage() {
 
           <div className="flex justify-end space-x-3 pt-2">
             <Link
-              to={`/tasks?namespace=${namespace}`}
+              to="/tasks"
               className="px-4 py-2.5 text-sm font-medium text-stone-600 bg-stone-100 rounded-lg hover:bg-stone-200 transition-colors"
             >
               Cancel

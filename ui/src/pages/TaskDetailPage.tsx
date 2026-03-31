@@ -24,7 +24,7 @@ function TaskDetailPage() {
     onSuccess: () => {
       addToast(`Task "${name}" deleted successfully`, 'success');
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      navigate(`/tasks?namespace=${namespace}`);
+      navigate('/tasks');
     },
     onError: (err: Error) => {
       addToast(`Failed to delete task: ${err.message}`, 'error');
@@ -76,7 +76,7 @@ function TaskDetailPage() {
             : errorMessage}
         </p>
         <Link
-          to={`/tasks?namespace=${namespace}`}
+          to="/tasks"
           className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
         >
           Back to Tasks
@@ -88,8 +88,8 @@ function TaskDetailPage() {
   return (
     <div className="animate-fade-in">
       <Breadcrumbs items={[
-        { label: 'Tasks', to: `/tasks?namespace=${namespace}` },
-        { label: namespace!, to: `/tasks?namespace=${namespace}` },
+        { label: 'Tasks', to: '/tasks' },
+        { label: namespace! },
         { label: name! },
       ]} />
 
@@ -112,7 +112,7 @@ function TaskDetailPage() {
                 </button>
               )}
               <Link
-                to={`/tasks/create?namespace=${namespace}&rerun=${name}`}
+                to={`/tasks/create?rerun=${name}&namespace=${namespace}`}
                 className="px-3 py-1.5 text-xs font-medium text-stone-600 bg-stone-50 border border-stone-200 rounded-lg hover:bg-stone-100 transition-colors"
               >
                 Rerun

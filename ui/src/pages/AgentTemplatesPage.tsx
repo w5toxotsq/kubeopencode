@@ -6,32 +6,18 @@ import Labels from '../components/Labels';
 import Skeleton from '../components/Skeleton';
 import ResourceFilter from '../components/ResourceFilter';
 import { useFilterState } from '../hooks/useFilterState';
-import { getNamespaceCookie, setNamespaceCookie } from '../utils/cookies';
+import { useNamespace } from '../contexts/NamespaceContext';
 
 const PAGE_SIZE = 12;
 
 function AgentTemplatesPage() {
-  const [selectedNamespace, setSelectedNamespace] = useState<string>(() => {
-    return getNamespaceCookie() || '';
-  });
+  const { namespace, isAllNamespaces } = useNamespace();
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useFilterState();
 
-  const handleNamespaceChange = (newNamespace: string) => {
-    setSelectedNamespace(newNamespace);
-    if (newNamespace) {
-      setNamespaceCookie(newNamespace);
-    }
-  };
-
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedNamespace, filters.name, filters.labelSelector]);
-
-  const { data: namespacesData } = useQuery({
-    queryKey: ['namespaces'],
-    queryFn: () => api.getNamespaces(),
-  });
+  }, [namespace, filters.name, filters.labelSelector]);
 
   const filterParams = {
     name: filters.name || undefined,
@@ -42,11 +28,11 @@ function AgentTemplatesPage() {
   };
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['agent-templates', selectedNamespace, currentPage, filters.name, filters.labelSelector],
+    queryKey: ['agent-templates', namespace, currentPage, filters.name, filters.labelSelector],
     queryFn: () =>
-      selectedNamespace
-        ? api.listAgentTemplates(selectedNamespace, filterParams)
-        : api.listAllAgentTemplates(filterParams),
+      isAllNamespaces
+        ? api.listAllAgentTemplates(filterParams)
+        : api.listAgentTemplates(namespace, filterParams),
   });
 
   return (
@@ -57,20 +43,6 @@ function AgentTemplatesPage() {
           <p className="mt-1 text-sm text-stone-500">
             Reusable base configurations for creating Agents
           </p>
-        </div>
-        <div className="mt-4 sm:mt-0">
-          <select
-            value={selectedNamespace}
-            onChange={(e) => handleNamespaceChange(e.target.value)}
-            className="block w-full sm:w-48 rounded-lg border-stone-200 bg-white shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm text-stone-700"
-          >
-            <option value="">All Namespaces</option>
-            {namespacesData?.namespaces.map((ns) => (
-              <option key={ns} value={ns}>
-                {ns}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
