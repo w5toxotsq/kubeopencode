@@ -218,7 +218,7 @@ This approach is compatible with [cert-manager trust-manager](https://cert-manag
 
 Do not use `InsecureSkipTLSVerify` or `GIT_SSL_NO_VERIFY=true` to work around certificate issues. Disabling TLS verification exposes the agent to man-in-the-middle attacks. Always configure the correct CA bundle instead.
 
-See [Features - Custom CA Certificates](features.md#custom-ca-certificates) for detailed configuration examples.
+See [Architecture](architecture.md) for detailed CA bundle configuration examples.
 
 ## Controller Pod Security
 
@@ -240,7 +240,7 @@ KubeOpenCode applies a restricted security context by default to all agent conta
 
 These defaults align with the Kubernetes [Restricted Pod Security Standard](https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted) and are suitable for most workloads.
 
-You can override these defaults or add stricter settings using `podSpec.securityContext` (container-level) and `podSpec.podSecurityContext` (pod-level). See [Features - Pod Security](features.md#pod-security) for detailed configuration examples.
+You can override these defaults or add stricter settings using `podSpec.securityContext` (container-level) and `podSpec.podSecurityContext` (pod-level). See [Features - Enterprise Features](features.md#enterprise-features) for an overview.
 
 ### Runtime Isolation
 
@@ -288,13 +288,13 @@ spec:
 
 When agent images are hosted in private registries that require authentication, configure `imagePullSecrets` on the Agent. The referenced Secrets must be of type `kubernetes.io/dockerconfigjson` and exist in the same namespace as the Agent.
 
-See [Features - Private Registry Authentication](features.md#private-registry-authentication) for detailed configuration and examples.
+See [Features - Enterprise Features](features.md#enterprise-features) for an overview.
 
 ## Network Proxy Configuration
 
 Enterprise environments often require outbound traffic to pass through a corporate proxy. KubeOpenCode supports proxy configuration at both the Agent level and the cluster level via `KubeOpenCodeConfig`. Agent-level settings override cluster-level settings.
 
-See [Features - HTTP/HTTPS Proxy Configuration](features.md#httphttps-proxy-configuration) for detailed configuration and examples.
+See [Features - Enterprise Features](features.md#enterprise-features) for an overview.
 
 ## Best Practices
 

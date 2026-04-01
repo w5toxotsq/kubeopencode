@@ -1,4 +1,5 @@
 import type {ReactNode} from 'react';
+import {useEffect, useState} from 'react';
 import clsx from 'clsx';
 import Link from '@docusaurus/Link';
 import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
@@ -8,6 +9,8 @@ import Heading from '@theme/Heading';
 import CodeBlock from '@theme/CodeBlock';
 
 import styles from './index.module.css';
+
+const GITHUB_REPO = 'kubeopencode/kubeopencode';
 
 const agentYaml = `apiVersion: kubeopencode.io/v1alpha1
 kind: Agent
@@ -20,26 +23,47 @@ spec:
   persistence:
     sessions:
       size: "2Gi"
-  credentials:
-    - name: api-key
-      secretRef:
-        name: ai-credentials
-        key: api-key
-      env: OPENCODE_API_KEY`;
+  idleTimeout: "30m"`;
 
-const exampleYaml = `apiVersion: kubeopencode.io/v1alpha1
+const taskYaml = `apiVersion: kubeopencode.io/v1alpha1
 kind: Task
 metadata:
   name: update-dependencies
 spec:
-  agentRef:
-    name: dev-agent
+  templateRef:
+    name: ci-runner
   description: |
     Update all dependencies to latest versions.
     Run tests and create a pull request.`;
 
+function useGitHubStars(): number | null {
+  const [stars, setStars] = useState<number | null>(null);
+  useEffect(() => {
+    fetch(`https://api.github.com/repos/${GITHUB_REPO}`)
+      .then(res => res.json())
+      .then(data => {
+        if (typeof data.stargazers_count === 'number') {
+          setStars(data.stargazers_count);
+        }
+      })
+      .catch(() => {});
+  }, []);
+  return stars;
+}
+
+function AlphaBanner() {
+  return (
+    <div className={styles.alphaBanner}>
+      <div className="container">
+        This project is in <strong>early alpha</strong> (v0.0.x). Not recommended for production use. API may change without backward compatibility.
+      </div>
+    </div>
+  );
+}
+
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
+  const stars = useGitHubStars();
   return (
     <header className={clsx('hero hero--primary', styles.heroBanner)}>
       <div className="container">
@@ -61,8 +85,8 @@ function HomepageHeader() {
           <Link
             className="button button--outline button--lg"
             style={{color: 'white', borderColor: 'white', marginLeft: '1rem'}}
-            href="https://github.com/kubeopencode/kubeopencode">
-            GitHub
+            href={`https://github.com/${GITHUB_REPO}`}>
+            GitHub{stars !== null ? ` (${stars})` : ''}
           </Link>
         </div>
       </div>
@@ -76,16 +100,15 @@ function QuickExample() {
       <div className="container">
         <div className="row">
           <div className="col col--6">
-            <Heading as="h2">Deploy a Live Agent in Minutes</Heading>
+            <Heading as="h2">Live Agent: Human-in-the-Loop</Heading>
             <p>
-              Run AI coding agents as persistent services on Kubernetes.
-              Your team can interact with them anytime &mdash; through the
-              web terminal, CLI, or by submitting Tasks.
+              Deploy persistent AI agents your team can interact with in real time
+              &mdash; through the web terminal, CLI, or by submitting Tasks.
             </p>
             <ul>
               <li>Zero cold start &mdash; agent is always running</li>
               <li>Interactive terminal access via CLI or web</li>
-              <li>Shared context across all tasks</li>
+              <li>Auto-suspend when idle, resume on demand</li>
               <li>Session history persists across restarts</li>
             </ul>
           </div>
@@ -97,24 +120,43 @@ function QuickExample() {
         </div>
         <div className="row" style={{marginTop: '2rem'}}>
           <div className="col col--6">
-            <Heading as="h2">Submit Tasks as YAML</Heading>
+            <Heading as="h2">AgentTemplate: Workflows at Scale</Heading>
             <p>
-              Define what you want done as a Task. Submit it to a persistent Agent
-              for interactive work, or use an AgentTemplate for ephemeral one-off tasks.
+              Run stable, repeatable AI tasks in ephemeral Pods. Perfect for
+              CI/CD pipelines, batch operations, and automated workflows.
             </p>
             <ul>
               <li>No new tools to learn &mdash; just <code>kubectl apply</code></li>
               <li>Works with any CI/CD pipeline</li>
               <li>Scale with Helm templates for batch operations</li>
-              <li>Monitor with standard Kubernetes tooling</li>
+              <li>Rate limiting and quota controls</li>
             </ul>
           </div>
           <div className="col col--6">
             <CodeBlock language="yaml" title="task.yaml">
-              {exampleYaml}
+              {taskYaml}
             </CodeBlock>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function StarCallToAction() {
+  return (
+    <section className={styles.starCta}>
+      <div className="container text--center">
+        <Heading as="h2">Like this project?</Heading>
+        <p>
+          If you find KubeOpenCode useful, please give us a star on GitHub.
+          It helps others discover the project and motivates us to keep improving it.
+        </p>
+        <Link
+          className="button button--primary button--lg"
+          href={`https://github.com/${GITHUB_REPO}`}>
+          Star on GitHub
+        </Link>
       </div>
     </section>
   );
@@ -125,10 +167,12 @@ export default function Home(): ReactNode {
     <Layout
       title="Kubernetes-native Agent Platform for Teams and Enterprise"
       description="Deploy, manage, and govern AI coding agents at scale on Kubernetes. Built on OpenCode, designed for teams and enterprise.">
+      <AlphaBanner />
       <HomepageHeader />
       <main>
         <HomepageFeatures />
         <QuickExample />
+        <StarCallToAction />
       </main>
     </Layout>
   );

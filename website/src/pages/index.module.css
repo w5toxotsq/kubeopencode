@@ -1,3 +1,11 @@
+.alphaBanner {
+  background: #e8a838;
+  color: #1a1a1a;
+  text-align: center;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
 .heroBanner {
   padding: 4rem 0;
   text-align: center;
@@ -32,4 +40,15 @@
 .quickExample ul {
   margin-top: 1rem;
   line-height: 2;
+}
+
+.starCta {
+  padding: 4rem 0;
+  text-align: center;
+}
+
+.starCta p {
+  max-width: 500px;
+  margin: 0.5rem auto 1.5rem;
+  opacity: 0.85;
 }

@@ -213,8 +213,8 @@ type AgentSpec struct {
 	//   config: |
 	//     {
 	//       "$schema": "https://opencode.ai/config.json",
-	//       "model": "google/gemini-2.5-pro",
-	//       "small_model": "google/gemini-2.5-flash"
+	//       "model": "opencode/big-pickle",
+	//       "small_model": "opencode/big-pickle"
 	//     }
 	// +optional
 	Config *string `json:"config,omitempty"`
