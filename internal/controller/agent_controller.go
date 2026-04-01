@@ -459,6 +459,13 @@ func (r *AgentReconciler) reconcileStandby(ctx context.Context, agent *kubeopenv
 		return false, nil
 	}
 
+	// Detect resume transition: spec says active but status still shows suspended.
+	// Reset idle timer so the agent gets a full idle timeout period after resume.
+	if !agent.Spec.Suspend && agent.Status.Suspended && agent.Status.IdleSince != nil {
+		logger.Info("Agent just resumed, resetting idle timer", "agent", agent.Name)
+		agent.Status.IdleSince = nil
+	}
+
 	activeTasks, err := r.countActiveTasks(ctx, agent.Name, agent.Namespace)
 	if err != nil {
 		return false, err
