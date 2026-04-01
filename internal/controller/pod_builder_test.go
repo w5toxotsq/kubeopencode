@@ -1712,6 +1712,7 @@ func TestBuildPod_AgentRef_WithAttachCommand(t *testing.T) {
 	cfg := agentConfig{
 		agentImage:         "test-opencode:v1.0.0",
 		executorImage:      "test-executor:v1.0.0",
+		attachImage:        "test-attach:v1.0.0",
 		workspaceDir:       "/workspace",
 		serviceAccountName: "test-sa",
 	}
@@ -1725,6 +1726,11 @@ func TestBuildPod_AgentRef_WithAttachCommand(t *testing.T) {
 	}
 
 	container := pod.Spec.Containers[0]
+
+	// Verify attach image is used for default --attach command (no custom command)
+	if container.Image != "test-attach:v1.0.0" {
+		t.Errorf("Container.Image = %q, want %q (attach image for agentRef with default command)", container.Image, "test-attach:v1.0.0")
+	}
 
 	// Verify command uses --attach flag
 	if len(container.Command) != 3 {
@@ -1756,6 +1762,47 @@ func TestBuildPod_AgentRef_WithAttachCommand(t *testing.T) {
 	}
 	if !strings.Contains(container.Command[2], "test-task-") {
 		t.Errorf("Command --title should contain task name prefix 'test-task-'")
+	}
+}
+
+func TestBuildPod_AgentRef_WithCustomCommand_KeepsExecutorImage(t *testing.T) {
+	task := &kubeopenv1alpha1.Task{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-task",
+			Namespace: "default",
+			UID:       types.UID("test-uid"),
+		},
+	}
+	task.APIVersion = "kubeopencode.io/v1alpha1"
+	task.Kind = "Task"
+
+	cfg := agentConfig{
+		agentImage:         "test-opencode:v1.0.0",
+		executorImage:      "test-executor:v1.0.0",
+		attachImage:        "test-attach:v1.0.0",
+		command:            []string{"sh", "-c", "echo hello"},
+		workspaceDir:       "/workspace",
+		serviceAccountName: "test-sa",
+	}
+
+	serverURL := "http://test-agent.default.svc.cluster.local:4096"
+	pod := buildPod(task, "test-task-pod", cfg, nil, nil, nil, nil, defaultSystemConfig(), serverURL)
+
+	if pod == nil {
+		t.Fatal("buildPod returned nil")
+	}
+
+	container := pod.Spec.Containers[0]
+
+	// When a custom command is provided, keep the executor image since the
+	// custom command may need tools not available in the minimal attach image.
+	if container.Image != "test-executor:v1.0.0" {
+		t.Errorf("Container.Image = %q, want %q (executor image for agentRef with custom command)", container.Image, "test-executor:v1.0.0")
+	}
+
+	// Verify custom command is used (not --attach)
+	if strings.Contains(strings.Join(container.Command, " "), "--attach") {
+		t.Errorf("Custom command should NOT contain --attach flag")
 	}
 }
 

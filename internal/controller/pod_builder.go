@@ -1060,12 +1060,15 @@ func buildPod(task *kubeopenv1alpha1.Task, podName string, cfg agentConfig, cont
 			}
 		}
 	}
-	// Determine executor image: use lightweight attach image for agentRef tasks
+	// Determine executor image: use lightweight attach image only for agentRef tasks
+	// that use the default --attach command. When a custom command is provided,
+	// keep the executor image since the custom command may need tools not available
+	// in the minimal attach image.
 	executorImage := cfg.executorImage
-	if serverURL != "" && cfg.attachImage != "" {
-		// agentRef: use lightweight attach image (~25MB) instead of devbox (~1GB)
-		// The attach image only needs the OpenCode binary since actual execution
-		// happens in the persistent server's environment
+	if serverURL != "" && cfg.attachImage != "" && len(cfg.command) == 0 {
+		// agentRef with default command: use lightweight attach image (~25MB) instead
+		// of devbox (~1GB). The attach image only needs the OpenCode binary since
+		// actual execution happens in the persistent server's environment.
 		executorImage = cfg.attachImage
 	}
 

@@ -78,9 +78,9 @@ var _ = Describe("TaskController", func() {
 			Expect(createdPod.OwnerReferences[0].BlockOwnerDeletion).ShouldNot(BeNil())
 			Expect(*createdPod.OwnerReferences[0].BlockOwnerDeletion).Should(BeTrue())
 
-			By("Verifying Pod uses default attach image (agentRef uses lightweight attach image)")
+			By("Verifying Pod uses default executor image (shared agent has custom command, so attach image not used)")
 			Expect(createdPod.Spec.Containers).Should(HaveLen(1))
-			Expect(createdPod.Spec.Containers[0].Image).Should(Equal(DefaultAttachImage))
+			Expect(createdPod.Spec.Containers[0].Image).Should(Equal(DefaultExecutorImage))
 
 			By("Verifying Pod has OpenCode init container")
 			Expect(createdPod.Spec.InitContainers).ShouldNot(BeEmpty())
