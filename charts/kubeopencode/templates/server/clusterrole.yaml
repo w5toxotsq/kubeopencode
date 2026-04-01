@@ -18,10 +18,10 @@ rules:
 - apiGroups: ["kubeopencode.io"]
   resources: ["agents"]
   verbs: ["create", "update", "delete"]
-# Delete access to AgentTemplates
+# Write access to AgentTemplates (update, delete via UI)
 - apiGroups: ["kubeopencode.io"]
   resources: ["agenttemplates"]
-  verbs: ["delete"]
+  verbs: ["update", "delete"]
 # Read access to Pods (for status and log streaming)
 - apiGroups: [""]
   resources: ["pods"]

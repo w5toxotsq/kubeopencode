@@ -494,6 +494,10 @@ function AgentDetailPage() {
       <YamlViewer
         queryKey={['agent', namespace!, name!]}
         fetchYaml={() => api.getAgentYaml(namespace!, name!)}
+        onSave={async (yaml) => {
+          await api.updateAgentYaml(namespace!, name!, yaml);
+          refetch();
+        }}
       />
     </div>
   );

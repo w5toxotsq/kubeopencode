@@ -61,7 +61,7 @@ function DeleteTemplateButton({ namespace, name }: { namespace: string; name: st
 function AgentTemplateDetailPage() {
   const { namespace, name } = useParams<{ namespace: string; name: string }>();
 
-  const { data: tmpl, isLoading, error } = useQuery({
+  const { data: tmpl, isLoading, error, refetch } = useQuery({
     queryKey: ['agent-template', namespace, name],
     queryFn: () => api.getAgentTemplate(namespace!, name!),
     enabled: !!namespace && !!name,
@@ -321,6 +321,10 @@ function AgentTemplateDetailPage() {
       <YamlViewer
         queryKey={['agent-template', namespace!, name!]}
         fetchYaml={() => api.getAgentTemplateYaml(namespace!, name!)}
+        onSave={async (yaml) => {
+          await api.updateAgentTemplateYaml(namespace!, name!, yaml);
+          refetch();
+        }}
       />
     </div>
   );

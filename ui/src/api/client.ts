@@ -342,6 +342,18 @@ export const api = {
   resumeAgent: (namespace: string, name: string) =>
     request<Agent>(`/namespaces/${namespace}/agents/${name}/resume`, { method: 'POST' }),
 
+  updateAgentYaml: async (namespace: string, name: string, yaml: string): Promise<void> => {
+    const response = await fetch(`${API_BASE}/namespaces/${namespace}/agents/${name}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/x-yaml' },
+      body: yaml,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.message || error.error || `HTTP ${response.status}`);
+    }
+  },
+
   deleteAgent: (namespace: string, name: string) =>
     request<void>(`/namespaces/${namespace}/agents/${name}`, { method: 'DELETE' }),
 
@@ -378,6 +390,18 @@ export const api = {
     const response = await fetch(`${API_BASE}/namespaces/${namespace}/agenttemplates/${name}?output=yaml`);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return response.text();
+  },
+
+  updateAgentTemplateYaml: async (namespace: string, name: string, yaml: string): Promise<void> => {
+    const response = await fetch(`${API_BASE}/namespaces/${namespace}/agenttemplates/${name}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/x-yaml' },
+      body: yaml,
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Unknown error' }));
+      throw new Error(error.message || error.error || `HTTP ${response.status}`);
+    }
   },
 
   // Config (cluster-scoped singleton)
