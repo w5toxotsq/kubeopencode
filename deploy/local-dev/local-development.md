@@ -288,13 +288,10 @@ For quick testing, use the pre-configured resources in `deploy/local-dev/`:
 
 ### Deploy Test Resources
 
-```bash
-# First, create secrets.yaml from template
-cp deploy/local-dev/secrets.yaml.example deploy/local-dev/secrets.yaml
-# Edit secrets.yaml with your real API keys
-vim deploy/local-dev/secrets.yaml
+The local-dev environment uses the free `opencode/big-pickle` model by default — **no API key required**.
 
-# Deploy all resources (namespace, secrets, RBAC, template, agents)
+```bash
+# Deploy all resources (namespace, RBAC, template, agents)
 kubectl apply -k deploy/local-dev/
 
 # Verify the AgentTemplate
@@ -312,8 +309,7 @@ kubectl get deployment -n test
 | Resource | Name | Description |
 |----------|------|-------------|
 | Namespace | `test` | Isolated namespace for testing |
-| Secret | `opencode-credentials` | OpenCode API key |
-| Secret | `git-settings` | Git author/committer settings |
+| ~~Secret~~ | ~~opencode-credentials~~ | Not needed for free model (see secrets.yaml.example for paid models) |
 | ServiceAccount | `kubeopencode-agent` | Agent service account |
 | Role/RoleBinding | `kubeopencode-agent` | RBAC permissions |
 | AgentTemplate | `local-dev-base` | Shared base configuration (images, credentials, workspace) |
@@ -538,30 +534,44 @@ kubectl get agent -n test --show-labels
 
 ### Customization
 
-#### Using Real Secrets
+#### Using Real Secrets (Paid Models)
 
-Create a local secrets file (gitignored):
+If using a paid model, create a local secrets file (gitignored):
 
 ```bash
-cp deploy/local-dev/secrets.yaml deploy/local-dev/secrets.local.yaml
-# Edit secrets.local.yaml with real values
-kubectl apply -f deploy/local-dev/secrets.local.yaml -n test
+cp deploy/local-dev/secrets.yaml.example deploy/local-dev/secrets.yaml
+# Edit secrets.yaml with real API key values
+kubectl apply -f deploy/local-dev/secrets.yaml -n test
 ```
 
-#### Different AI Model
+#### Using a Paid AI Model
 
-Edit the `agenttemplate.yaml` to change the model for all agents at once:
+The default `opencode/big-pickle` model is free and requires no API key. To use a paid model:
 
-```yaml
-config: |
-  {
-    "$schema": "https://opencode.ai/config.json",
-    "model": "anthropic/claude-sonnet-4-20250514",
-    "small_model": "anthropic/claude-haiku-4-20250514"
-  }
-```
+1. Create a secret with your API key:
+   ```bash
+   cp deploy/local-dev/secrets.yaml.example deploy/local-dev/secrets.yaml
+   vim deploy/local-dev/secrets.yaml  # Add your real API key
+   kubectl apply -f deploy/local-dev/secrets.yaml -n test
+   ```
 
-Or override in a specific agent's config (agent-level config overrides template config).
+2. Edit `agenttemplate.yaml` to change the model and add credentials:
+   ```yaml
+   config: |
+     {
+       "$schema": "https://opencode.ai/config.json",
+       "model": "anthropic/claude-sonnet-4-20250514",
+       "small_model": "anthropic/claude-haiku-4-20250514"
+     }
+   credentials:
+     - name: opencode
+       secretRef:
+         name: opencode-credentials
+   ```
+
+3. Uncomment the `credentials` section in agent YAML files.
+
+Agent-level config overrides template config.
 
 #### Adjusting Persistence Sizes
 

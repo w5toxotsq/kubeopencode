@@ -21,16 +21,14 @@ spec:
   # ServiceAccount for RBAC
   serviceAccountName: kubeopencode-agent
   # Shared OpenCode configuration
+  # Uses the free opencode/big-pickle model — no API key required.
+  # To use a different model (e.g., Anthropic, Google), update the model fields
+  # and create a Secret with your API key (see secrets.yaml.example).
   config: |
     {
       "$schema": "https://opencode.ai/config.json",
-      "model": "opencode/gemini-3.1-pro",
-      "small_model": "opencode/gemini-3-flash",
+      "model": "opencode/big-pickle",
+      "small_model": "opencode/big-pickle",
       "share": "disabled",
       "autoupdate": false
     }
-  # Shared credentials
-  credentials:
-    - name: opencode
-      secretRef:
-        name: opencode-credentials

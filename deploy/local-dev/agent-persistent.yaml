@@ -36,8 +36,8 @@ spec:
   idleTimeout: "30m"
   # Limit concurrent tasks for local testing
   maxConcurrentTasks: 3
-  # Mount OpenCode API credentials (overrides template to demonstrate override)
-  credentials:
-    - name: opencode
-      secretRef:
-        name: opencode-credentials
+  # Optional: Mount API credentials for paid models (not needed for free big-pickle model)
+  # credentials:
+  #   - name: opencode
+  #     secretRef:
+  #       name: opencode-credentials

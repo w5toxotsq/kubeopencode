@@ -1,19 +1,15 @@
 # Copyright Contributors to the KubeOpenCode project
 # Kustomization for local development environment
 #
-# Usage:
-#   # First, create secrets.yaml from template (gitignored)
-#   cp deploy/local-dev/secrets.yaml.example deploy/local-dev/secrets.yaml
-#   # Edit secrets.yaml with your real API keys
-#
-#   # Deploy all resources
+# Quick Start (uses free opencode/big-pickle model — no API key needed):
 #   kubectl apply -k deploy/local-dev/
 #
-#   # Or deploy individually
-#   kubectl apply -f deploy/local-dev/namespace.yaml
-#   kubectl apply -f deploy/local-dev/secrets.yaml -n test
-#   kubectl apply -f deploy/local-dev/rbac.yaml -n test
-#   kubectl apply -f deploy/local-dev/agent-persistent.yaml -n test
+# For paid models (Anthropic, Google, etc.):
+#   1. cp deploy/local-dev/secrets.yaml.example deploy/local-dev/secrets.yaml
+#   2. Edit secrets.yaml with your real API key
+#   3. kubectl apply -f deploy/local-dev/secrets.yaml -n test
+#   4. Update agenttemplate.yaml model + uncomment credentials in agent YAMLs
+#   5. kubectl apply -k deploy/local-dev/
 #
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
@@ -22,7 +18,6 @@ namespace: test
 
 resources:
   - namespace.yaml
-  - secrets.yaml
   - rbac.yaml
   - agenttemplate.yaml
   - agent-persistent.yaml
