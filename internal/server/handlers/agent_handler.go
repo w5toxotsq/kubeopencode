@@ -214,8 +214,10 @@ func agentToResponse(agent *kubeopenv1alpha1.Agent) types.AgentResponse {
 		}
 	}
 
-	if agent.Spec.IdleTimeout != nil {
-		resp.IdleTimeout = agent.Spec.IdleTimeout.Duration.String()
+	if agent.Spec.Standby != nil {
+		resp.Standby = &types.StandbyInfo{
+			IdleTimeout: agent.Spec.Standby.IdleTimeout.Duration.String(),
+		}
 	}
 
 	resp.Conditions = conditionsToResponse(agent.Status.Conditions)
@@ -291,13 +293,15 @@ func (h *AgentHandler) Create(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if req.IdleTimeout != "" {
-		d, err := time.ParseDuration(req.IdleTimeout)
+	if req.Standby != nil {
+		d, err := time.ParseDuration(req.Standby.IdleTimeout)
 		if err != nil {
-			writeError(w, http.StatusBadRequest, "Invalid idleTimeout format", fmt.Sprintf("expected Go duration (e.g. 30m, 1h): %v", err))
+			writeError(w, http.StatusBadRequest, "Invalid standby.idleTimeout format", fmt.Sprintf("expected Go duration (e.g. 30m, 1h): %v", err))
 			return
 		}
-		agent.Spec.IdleTimeout = &metav1.Duration{Duration: d}
+		agent.Spec.Standby = &kubeopenv1alpha1.StandbyConfig{
+			IdleTimeout: metav1.Duration{Duration: d},
+		}
 	}
 
 	if req.Persistence != nil {
@@ -395,6 +399,27 @@ func (h *AgentHandler) setSuspendState(w http.ResponseWriter, r *http.Request, s
 		}
 		writeError(w, http.StatusInternalServerError, "Failed to get Agent", err.Error())
 		return
+	}
+
+	// Reject suspend if there are active tasks (Running, Queued, Pending)
+	if suspend {
+		var taskList kubeopenv1alpha1.TaskList
+		if err := k8sClient.List(ctx, &taskList,
+			client.InNamespace(namespace),
+			client.MatchingLabels{controller.AgentLabelKey: name},
+		); err != nil {
+			writeError(w, http.StatusInternalServerError, "Failed to list tasks", err.Error())
+			return
+		}
+		for i := range taskList.Items {
+			phase := taskList.Items[i].Status.Phase
+			if phase == kubeopenv1alpha1.TaskPhaseRunning ||
+				phase == kubeopenv1alpha1.TaskPhasePending ||
+				phase == "" {
+				writeError(w, http.StatusConflict, "Cannot suspend agent", "Agent has active tasks")
+				return
+			}
+		}
 	}
 
 	agent.Spec.Suspend = suspend

@@ -26,7 +26,7 @@ function AgentCreatePage() {
 
   // P1: Common configuration
   const [maxConcurrentTasks, setMaxConcurrentTasks] = useState('');
-  const [idleTimeout, setIdleTimeout] = useState('');
+  const [standbyIdleTimeout, setStandbyIdleTimeout] = useState('');
   const [sessionsEnabled, setSessionsEnabled] = useState(false);
   const [sessionsSize, setSessionsSize] = useState('');
   const [workspacePersistEnabled, setWorkspacePersistEnabled] = useState(false);
@@ -119,7 +119,7 @@ function AgentCreatePage() {
       const parsed = parseInt(maxConcurrentTasks, 10);
       if (!isNaN(parsed)) agent.maxConcurrentTasks = parsed;
     }
-    if (idleTimeout) agent.idleTimeout = idleTimeout;
+    if (standbyIdleTimeout) agent.standby = { idleTimeout: standbyIdleTimeout };
 
     if (sessionsEnabled || workspacePersistEnabled) {
       agent.persistence = {};
@@ -314,18 +314,18 @@ function AgentCreatePage() {
                 />
               </div>
               <div>
-                <label htmlFor="idleTimeout" className={labelClass}>
-                  Idle Timeout <span className="normal-case tracking-normal text-stone-300">(optional)</span>
+                <label htmlFor="standbyIdleTimeout" className={labelClass}>
+                  Standby <span className="normal-case tracking-normal text-stone-300">(optional)</span>
                 </label>
                 <input
                   type="text"
-                  id="idleTimeout"
-                  value={idleTimeout}
-                  onChange={(e) => setIdleTimeout(e.target.value)}
+                  id="standbyIdleTimeout"
+                  value={standbyIdleTimeout}
+                  onChange={(e) => setStandbyIdleTimeout(e.target.value)}
                   placeholder="e.g. 30m, 1h"
                   className={monoInputClass}
                 />
-                <p className="mt-1 text-xs text-stone-400">Auto-suspend after idle period</p>
+                <p className="mt-1 text-xs text-stone-400">Auto-suspend after idle, auto-resume on new task</p>
               </div>
             </div>
 

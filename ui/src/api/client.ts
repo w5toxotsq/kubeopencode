@@ -82,11 +82,15 @@ export interface CreateAgentRequest {
   executorImage?: string;
   // P1: Common configuration
   maxConcurrentTasks?: number;
-  idleTimeout?: string;
+  standby?: StandbyInfo;
   persistence?: CreatePersistenceConfig;
   // P2: Advanced
   port?: number;
   proxy?: ProxyConfigInfo;
+}
+
+export interface StandbyInfo {
+  idleTimeout: string;
 }
 
 export interface ContextItem {
@@ -134,7 +138,7 @@ export interface Agent {
   contexts?: ContextItem[];
   createdAt: string;
   labels?: Record<string, string>;
-  idleTimeout?: string;
+  standby?: StandbyInfo;
   conditions?: Condition[];
   serverStatus?: ServerStatusInfo;
 }

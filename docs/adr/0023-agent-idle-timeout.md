@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR 0024: Agent Standby](0024-agent-standby.md)
 
 ## Date
 

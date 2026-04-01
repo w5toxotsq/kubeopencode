@@ -51,19 +51,19 @@ Key behaviors:
 
 ### Agent Configuration (Summary)
 
-Key Agent spec fields: `templateRef`, `profile`, `agentImage`, `executorImage`, `attachImage`, `command` (optional, has default), `workspaceDir` (required), `port` (default: 4096), `persistence`, `suspend`, `idleTimeout` (auto-suspend/resume), `contexts`, `config` (inline JSON → `/tools/opencode.json`), `credentials`, `caBundle`, `proxy`, `imagePullSecrets`, `podSpec`, `serviceAccountName`, `maxConcurrentTasks`, `quota`.
+Key Agent spec fields: `templateRef`, `profile`, `agentImage`, `executorImage`, `attachImage`, `command` (optional, has default), `workspaceDir` (required), `port` (default: 4096), `persistence`, `suspend`, `standby` (automatic suspend/resume lifecycle), `contexts`, `config` (inline JSON → `/tools/opencode.json`), `credentials`, `caBundle`, `proxy`, `imagePullSecrets`, `podSpec`, `serviceAccountName`, `maxConcurrentTasks`, `quota`.
 
 > See `docs/features.md` for detailed YAML examples of Agent configuration, proxy, credentials, concurrency, quota, and persistence.
 
 ### AgentTemplate
 
-Reusable blueprint serving two roles: (1) base configuration for Agents via `spec.templateRef.name`, (2) blueprint for ephemeral Tasks via `Task.spec.templateRef`. Merge strategy: Agent wins for scalars; Agent **replaces** template for lists. Agent-only fields: `profile`, `port`, `persistence`, `suspend`, `idleTimeout`, `templateRef`.
+Reusable blueprint serving two roles: (1) base configuration for Agents via `spec.templateRef.name`, (2) blueprint for ephemeral Tasks via `Task.spec.templateRef`. Merge strategy: Agent wins for scalars; Agent **replaces** template for lists. Agent-only fields: `profile`, `port`, `persistence`, `suspend`, `standby`, `templateRef`.
 
 > See `docs/architecture.md` for AgentTemplate spec fields and merge details.
 
 ### Agent Lifecycle
 
-Agent always creates a Deployment + Service running `opencode serve`. Supports persistence (sessions/workspace PVCs), manual suspend/resume (`suspend`), and automatic idle timeout (`idleTimeout` auto-suspends when no tasks, auto-resumes when task arrives).
+Agent always creates a Deployment + Service running `opencode serve`. Supports persistence (sessions/workspace PVCs), manual suspend/resume (`suspend`), and standby mode (`standby` auto-suspends after idle, auto-resumes when new task arrives).
 
 > See `docs/features.md` for Agent setup, persistence, suspend/resume, and comparison table.
 

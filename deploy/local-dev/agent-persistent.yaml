@@ -2,12 +2,12 @@
 # Persistent Agent for local testing
 #
 # Agent with session and workspace persistence — data survives pod restarts.
-# Includes idle timeout for automatic suspend/resume.
+# Includes standby for automatic suspend/resume lifecycle management.
 #
 # Features demonstrated:
 #   - templateRef: inherits shared config from AgentTemplate
 #   - persistence: session + workspace data survive pod restarts
-#   - idleTimeout: auto-suspends after 30 minutes idle, resumes on new Task
+#   - standby: auto-suspends after 30 minutes idle, auto-resumes on new Task
 #   - maxConcurrentTasks: limits concurrent task execution
 #
 apiVersion: kubeopencode.io/v1alpha1
@@ -32,8 +32,9 @@ spec:
     # Workspace persistence: git repos and modified files survive pod restarts
     workspace:
       size: "5Gi"
-  # Auto-suspend after 30 minutes with no tasks (auto-resumes when new Task arrives)
-  idleTimeout: "30m"
+  # Standby: auto-suspend after 30 minutes idle, auto-resume when new Task arrives
+  standby:
+    idleTimeout: "30m"
   # Limit concurrent tasks for local testing
   maxConcurrentTasks: 3
   # Optional: Mount API credentials for paid models (not needed for free big-pickle model)

@@ -52,11 +52,12 @@ spec:
 
 Agents consume cluster resources. KubeOpenCode provides controls to manage this:
 
-**Idle Timeout** — Automatically suspend Agents after a period of inactivity. When a new Task arrives, the Agent resumes automatically:
+**Standby** — Automatically suspend Agents after a period of inactivity. When a new Task arrives, the Agent resumes automatically:
 
 ```yaml
 spec:
-  idleTimeout: "30m"   # Auto-suspend after 30 minutes idle
+  standby:
+    idleTimeout: "30m"   # Auto-suspend after 30 minutes idle
 ```
 
 **Manual Suspend / Resume** — Scale an Agent to zero while retaining all persistent data:
@@ -109,7 +110,8 @@ spec:
   persistence:
     sessions:
       size: "2Gi"
-  idleTimeout: "30m"
+  standby:
+    idleTimeout: "30m"
   maxConcurrentTasks: 3
 ```
 

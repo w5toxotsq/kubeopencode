@@ -102,20 +102,16 @@ func (r *AgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 		return ctrl.Result{}, err
 	}
 
-	// Handle idle timeout (auto-suspend/auto-resume).
-	// Only mutates in-memory status — updateAgentStatus persists all changes atomically.
-	if agent.Spec.IdleTimeout != nil && !agent.Spec.Suspend {
-		if err := r.reconcileIdleTimeout(ctx, &agent); err != nil {
-			logger.Error(err, "Failed to reconcile idle timeout")
-			return ctrl.Result{}, err
-		}
-	} else if agent.Spec.IdleTimeout == nil && agent.Status.IdleSince != nil {
-		// idleTimeout was removed — clear idle tracking (persisted by updateAgentStatus)
-		agent.Status.IdleSince = nil
+	// Handle standby lifecycle (auto-suspend/auto-resume).
+	// If spec.suspend was patched, return early — the patch triggers a new reconcile.
+	patched, err := r.reconcileStandby(ctx, &agent)
+	if err != nil {
+		logger.Error(err, "Failed to reconcile standby")
+		return ctrl.Result{}, err
 	}
-
-	// Evaluate auto-suspend once for consistency across reconcileDeployment and updateAgentStatus
-	autoSuspended := r.shouldAutoSuspend(&agent)
+	if patched {
+		return ctrl.Result{}, nil
+	}
 
 	// Reconcile persistence PVCs if configured
 	if err := r.reconcilePVC(ctx, &agent, BuildServerSessionPVC, "session"); err != nil {
@@ -128,7 +124,7 @@ func (r *AgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 
 	// Reconcile the Deployment (with context support)
-	if err := r.reconcileDeployment(ctx, &agent, autoSuspended, agentCfg, sysCfg, contextConfigMap, fileMounts, dirMounts, gitMounts); err != nil {
+	if err := r.reconcileDeployment(ctx, &agent, agentCfg, sysCfg, contextConfigMap, fileMounts, dirMounts, gitMounts); err != nil {
 		logger.Error(err, "Failed to reconcile Deployment")
 		return ctrl.Result{}, err
 	}
@@ -140,7 +136,7 @@ func (r *AgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	}
 
 	// Update Agent status
-	if err := r.updateAgentStatus(ctx, &agent, autoSuspended); err != nil {
+	if err := r.updateAgentStatus(ctx, &agent); err != nil {
 		logger.Error(err, "Failed to update Agent status")
 		return ctrl.Result{}, err
 	}
@@ -148,8 +144,8 @@ func (r *AgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	// Calculate optimal requeue interval.
 	// When idle timer is running, requeue precisely when timeout expires.
 	requeueAfter := DefaultServerReconcileInterval
-	if agent.Spec.IdleTimeout != nil && !agent.Spec.Suspend && agent.Status.IdleSince != nil && !autoSuspended {
-		remaining := time.Until(agent.Status.IdleSince.Time.Add(agent.Spec.IdleTimeout.Duration))
+	if agent.Spec.Standby != nil && !agent.Spec.Suspend && agent.Status.IdleSince != nil {
+		remaining := time.Until(agent.Status.IdleSince.Time.Add(agent.Spec.Standby.IdleTimeout.Duration))
 		if remaining > 0 && remaining < requeueAfter {
 			requeueAfter = remaining
 		}
@@ -158,13 +154,13 @@ func (r *AgentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 }
 
 // reconcileDeployment ensures the Deployment exists and is up-to-date.
-func (r *AgentReconciler) reconcileDeployment(ctx context.Context, agent *kubeopenv1alpha1.Agent, autoSuspended bool, agentCfg agentConfig, sysCfg systemConfig, contextConfigMap *corev1.ConfigMap, fileMounts []fileMount, dirMounts []dirMount, gitMounts []gitMount) error {
+func (r *AgentReconciler) reconcileDeployment(ctx context.Context, agent *kubeopenv1alpha1.Agent, agentCfg agentConfig, sysCfg systemConfig, contextConfigMap *corev1.ConfigMap, fileMounts []fileMount, dirMounts []dirMount, gitMounts []gitMount) error {
 	logger := log.FromContext(ctx)
 
 	desired := BuildServerDeployment(agent, agentCfg, sysCfg, contextConfigMap, fileMounts, dirMounts, gitMounts)
 
-	// Scale to 0 replicas when manually suspended or auto-suspended due to idle timeout
-	if agent.Spec.Suspend || autoSuspended {
+	// Scale to 0 replicas when suspended
+	if agent.Spec.Suspend {
 		replicas := int32(0)
 		desired.Spec.Replicas = &replicas
 	}
@@ -241,23 +237,26 @@ func (r *AgentReconciler) reconcileService(ctx context.Context, agent *kubeopenv
 // updateAgentStatus updates the Agent's status with deployment information.
 // Health is determined by Deployment readiness (liveness/readiness probes on the Deployment
 // already check the server's /session/status endpoint).
-func (r *AgentReconciler) updateAgentStatus(ctx context.Context, agent *kubeopenv1alpha1.Agent, autoSuspended bool) error {
+func (r *AgentReconciler) updateAgentStatus(ctx context.Context, agent *kubeopenv1alpha1.Agent) error {
 	deploymentName := ServerDeploymentName(agent.Name)
 	agent.Status.DeploymentName = deploymentName
 	agent.Status.ServiceName = ServerServiceName(agent.Name)
 	agent.Status.URL = ServerURL(agent.Name, agent.Namespace, GetServerPort(agent))
 
-	// Handle suspended state (manual or auto-suspend)
+	// status.Suspended mirrors spec.suspend
 	if agent.Spec.Suspend {
 		agent.Status.Suspended = true
 		agent.Status.Ready = false
-		setAgentCondition(agent, AgentConditionSuspended, metav1.ConditionTrue, "UserRequested", "Agent is manually suspended")
-		setAgentCondition(agent, AgentConditionServerReady, metav1.ConditionFalse, "Suspended", "Agent is suspended")
-	} else if autoSuspended {
-		agent.Status.Suspended = true
-		agent.Status.Ready = false
-		setAgentCondition(agent, AgentConditionSuspended, metav1.ConditionTrue, "IdleTimeout", fmt.Sprintf("Agent auto-suspended after %s idle", agent.Spec.IdleTimeout.Duration))
-		setAgentCondition(agent, AgentConditionServerReady, metav1.ConditionFalse, "Suspended", "Agent is auto-suspended due to idle timeout")
+
+		// Determine suspend reason
+		reason := "UserRequested"
+		message := "Agent is suspended"
+		if agent.Spec.Standby != nil {
+			reason = "Standby"
+			message = fmt.Sprintf("Agent is suspended (standby configured with %s idle timeout)", agent.Spec.Standby.IdleTimeout.Duration)
+		}
+		setAgentCondition(agent, AgentConditionSuspended, metav1.ConditionTrue, reason, message)
+		setAgentCondition(agent, AgentConditionServerReady, metav1.ConditionFalse, "Suspended", message)
 	} else {
 		agent.Status.Suspended = false
 		setAgentCondition(agent, AgentConditionSuspended, metav1.ConditionFalse, "Active", "Agent is active")
@@ -421,17 +420,6 @@ func (r *AgentReconciler) reconcilePVC(ctx context.Context, agent *kubeopenv1alp
 	return nil
 }
 
-// shouldAutoSuspend returns true if the Agent should be auto-suspended due to idle timeout.
-func (r *AgentReconciler) shouldAutoSuspend(agent *kubeopenv1alpha1.Agent) bool {
-	if agent.Spec.IdleTimeout == nil || agent.Spec.Suspend {
-		return false
-	}
-	if agent.Status.IdleSince == nil {
-		return false
-	}
-	return time.Since(agent.Status.IdleSince.Time) >= agent.Spec.IdleTimeout.Duration
-}
-
 // countActiveTasks counts Tasks targeting this Agent that are in Running, Queued, or Pending phase.
 func (r *AgentReconciler) countActiveTasks(ctx context.Context, agentName, namespace string) (int, error) {
 	taskList := &kubeopenv1alpha1.TaskList{}
@@ -455,15 +443,25 @@ func (r *AgentReconciler) countActiveTasks(ctx context.Context, agentName, names
 	return count, nil
 }
 
-// reconcileIdleTimeout manages the idle timer for auto-suspend lifecycle.
-// Only mutates in-memory status fields — updateAgentStatus persists all changes atomically.
-// Called when idleTimeout is configured and manual suspend is not active.
-func (r *AgentReconciler) reconcileIdleTimeout(ctx context.Context, agent *kubeopenv1alpha1.Agent) error {
+// reconcileStandby manages the standby lifecycle (auto-suspend/auto-resume).
+// When standby is configured, the controller patches spec.suspend:
+//   - Sets spec.suspend=true when idle timeout expires (no active Tasks)
+//   - Sets spec.suspend=false when a new Task arrives on a suspended Agent
+//
+// Returns true if spec.suspend was patched (caller should return early since
+// the patch triggers a new reconcile via the watch).
+func (r *AgentReconciler) reconcileStandby(ctx context.Context, agent *kubeopenv1alpha1.Agent) (bool, error) {
 	logger := log.FromContext(ctx)
+
+	if agent.Spec.Standby == nil {
+		// Standby not configured — clear idle tracking if leftover
+		agent.Status.IdleSince = nil
+		return false, nil
+	}
 
 	activeTasks, err := r.countActiveTasks(ctx, agent.Name, agent.Namespace)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if activeTasks > 0 {
@@ -472,21 +470,41 @@ func (r *AgentReconciler) reconcileIdleTimeout(ctx context.Context, agent *kubeo
 			logger.Info("Tasks active, clearing idle timer", "agent", agent.Name, "activeTasks", activeTasks)
 			agent.Status.IdleSince = nil
 		}
+
+		// Auto-resume: if agent is suspended and tasks are waiting, unsuspend
+		if agent.Spec.Suspend {
+			logger.Info("Standby auto-resume: active tasks detected, unsuspending agent", "agent", agent.Name, "activeTasks", activeTasks)
+			patch := client.MergeFrom(agent.DeepCopy())
+			agent.Spec.Suspend = false
+			if err := r.Patch(ctx, agent, patch); err != nil {
+				return false, fmt.Errorf("failed to patch spec.suspend=false for auto-resume: %w", err)
+			}
+			return true, nil
+		}
 	} else {
-		// No active tasks — start idle timer if not already started
+		// No active tasks
 		if agent.Status.IdleSince == nil {
 			now := metav1.Now()
 			agent.Status.IdleSince = &now
 			logger.Info("No active tasks, starting idle timer", "agent", agent.Name)
+		} else if !agent.Spec.Suspend && time.Since(agent.Status.IdleSince.Time) >= agent.Spec.Standby.IdleTimeout.Duration {
+			// Idle timeout expired — auto-suspend
+			logger.Info("Standby auto-suspend: idle timeout expired", "agent", agent.Name, "idleTimeout", agent.Spec.Standby.IdleTimeout.Duration)
+			patch := client.MergeFrom(agent.DeepCopy())
+			agent.Spec.Suspend = true
+			if err := r.Patch(ctx, agent, patch); err != nil {
+				return false, fmt.Errorf("failed to patch spec.suspend=true for auto-suspend: %w", err)
+			}
+			return true, nil
 		}
 	}
 
-	return nil
+	return false, nil
 }
 
 // findAgentForTask returns a reconcile request for the Agent referenced by a Task.
 // This enables the agent controller to react immediately when Tasks are created or updated,
-// supporting fast auto-resume from idle timeout.
+// supporting fast auto-resume via standby.
 func (r *AgentReconciler) findAgentForTask(ctx context.Context, obj client.Object) []reconcile.Request {
 	task, ok := obj.(*kubeopenv1alpha1.Task)
 	if !ok {

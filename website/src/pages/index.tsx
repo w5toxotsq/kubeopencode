@@ -23,7 +23,8 @@ spec:
   persistence:
     sessions:
       size: "2Gi"
-  idleTimeout: "30m"`;
+  standby:
+    idleTimeout: "30m"`;
 
 const taskYaml = `apiVersion: kubeopencode.io/v1alpha1
 kind: Task

@@ -342,22 +342,25 @@ type AgentSpec struct {
 	// can be resumed without data loss. Tasks targeting a suspended Agent
 	// enter Queued phase until the Agent is resumed.
 	//
-	// Manual suspend always takes priority over idleTimeout.
+	// This field can be set by users (via kubectl/UI) or by the controller
+	// when standby is configured (automatic lifecycle management).
 	//
 	// Similar to Kubernetes CronJob's spec.suspend field.
 	// +optional
 	Suspend bool `json:"suspend,omitempty"`
 
-	// IdleTimeout configures automatic suspend after a period of inactivity.
-	// When set, the Agent's Deployment scales to 0 after this duration with
-	// no running or queued Tasks, and auto-resumes when a new Task arrives.
-	// Has no effect when spec.suspend is true (manual suspend takes priority).
+	// Standby configures automatic suspend/resume lifecycle management.
+	// When configured, the controller automatically:
+	//   - Suspends the Agent (sets spec.suspend=true) after idleTimeout with no active Tasks
+	//   - Resumes the Agent (sets spec.suspend=false) when a new Task arrives
+	//
+	// Without standby, spec.suspend is controlled only by the user.
 	//
 	// Example:
-	//   idleTimeout: "30m"   # Auto-suspend after 30 minutes idle
-	//   idleTimeout: "1h"    # Auto-suspend after 1 hour idle
+	//   standby:
+	//     idleTimeout: "30m"   # Auto-suspend after 30 minutes idle
 	// +optional
-	IdleTimeout *metav1.Duration `json:"idleTimeout,omitempty"`
+	Standby *StandbyConfig `json:"standby,omitempty"`
 }
 
 // AgentStatus defines the observed state of Agent
@@ -399,17 +402,29 @@ type AgentStatus struct {
 	// +optional
 	Ready bool `json:"ready,omitempty"`
 
-	// Suspended indicates the Agent is intentionally scaled to 0 replicas.
+	// Suspended mirrors spec.suspend for observability.
 	// When true, Ready is always false. Use this to distinguish "suspended"
 	// from "not ready due to an issue".
 	// +optional
 	Suspended bool `json:"suspended,omitempty"`
 
 	// IdleSince records when the Agent became idle (no running or queued Tasks).
-	// Nil when Tasks are active. Used with spec.idleTimeout to determine
+	// Nil when Tasks are active. Used with spec.standby to determine
 	// when to auto-suspend.
 	// +optional
 	IdleSince *metav1.Time `json:"idleSince,omitempty"`
+}
+
+// StandbyConfig configures automatic suspend/resume lifecycle management for an Agent.
+// When configured on an Agent, the controller manages spec.suspend automatically:
+// it suspends the Agent after idleTimeout with no active Tasks, and resumes it
+// when a new Task arrives.
+type StandbyConfig struct {
+	// IdleTimeout is the duration after which the Agent is automatically suspended
+	// when there are no running or queued Tasks.
+	//
+	// Example: "30m", "1h"
+	IdleTimeout metav1.Duration `json:"idleTimeout"`
 }
 
 // AgentPodSpec defines advanced Pod configuration for agent pods.

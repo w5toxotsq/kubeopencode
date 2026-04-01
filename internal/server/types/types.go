@@ -58,8 +58,8 @@ type CreateAgentRequest struct {
 	ExecutorImage string `json:"executorImage,omitempty"`
 
 	// P1: Common configuration
-	MaxConcurrentTasks *int32 `json:"maxConcurrentTasks,omitempty"`
-	IdleTimeout        string `json:"idleTimeout,omitempty"`
+	MaxConcurrentTasks *int32       `json:"maxConcurrentTasks,omitempty"`
+	Standby            *StandbyInfo `json:"standby,omitempty"`
 	Persistence        *CreatePersistenceConfig `json:"persistence,omitempty"`
 
 	// P2: Advanced configuration
@@ -150,7 +150,7 @@ type AgentResponse struct {
 	Contexts           []ContextItem     `json:"contexts,omitempty"`
 	CreatedAt          time.Time         `json:"createdAt"`
 	Labels             map[string]string `json:"labels,omitempty"`
-	IdleTimeout        string            `json:"idleTimeout,omitempty"`
+	Standby            *StandbyInfo      `json:"standby,omitempty"`
 	Conditions         []Condition       `json:"conditions,omitempty"`
 	ServerStatus       *ServerStatusInfo `json:"serverStatus,omitempty"`
 }
@@ -178,6 +178,11 @@ type AgentTemplateListResponse struct {
 	Templates  []AgentTemplateResponse `json:"templates"`
 	Total      int                     `json:"total"`
 	Pagination *Pagination             `json:"pagination,omitempty"`
+}
+
+// StandbyInfo represents standby configuration in API requests/responses
+type StandbyInfo struct {
+	IdleTimeout string `json:"idleTimeout"`
 }
 
 // ServerStatusInfo represents the status of an Agent's deployment

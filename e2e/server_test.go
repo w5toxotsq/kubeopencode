@@ -4,6 +4,7 @@ package e2e
 
 import (
 	"fmt"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -881,6 +882,97 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 			}, timeout, interval).Should(Equal(int32(1)))
 
 			By("Cleaning up")
+			Expect(k8sClient.Delete(ctx, agent)).Should(Succeed())
+		})
+	})
+
+	Context("Agent - Standby Auto-Suspend/Resume", func() {
+		It("should auto-suspend after idle timeout and auto-resume when task created", func() {
+			agentName := uniqueName("standby-agent")
+
+			By("Creating Agent with standby (short idle timeout)")
+			agent := &kubeopenv1alpha1.Agent{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      agentName,
+					Namespace: testNS,
+				},
+				Spec: kubeopenv1alpha1.AgentSpec{
+					ExecutorImage:      echoImage,
+					ServiceAccountName: testServiceAccount,
+					WorkspaceDir:       "/workspace",
+					Port:               4096,
+					Standby: &kubeopenv1alpha1.StandbyConfig{
+						IdleTimeout: metav1.Duration{Duration: 5 * time.Second},
+					},
+				},
+			}
+			Expect(k8sClient.Create(ctx, agent)).Should(Succeed())
+
+			By("Waiting for Deployment to be created")
+			deploymentKey := types.NamespacedName{Name: controller.ServerDeploymentName(agentName), Namespace: testNS}
+			Eventually(func() bool {
+				deployment := &appsv1.Deployment{}
+				return k8sClient.Get(ctx, deploymentKey, deployment) == nil
+			}, timeout, interval).Should(BeTrue())
+
+			agentKey := types.NamespacedName{Name: agentName, Namespace: testNS}
+
+			By("Expecting spec.suspend to become true after idle timeout")
+			Eventually(func() bool {
+				a := &kubeopenv1alpha1.Agent{}
+				if err := k8sClient.Get(ctx, agentKey, a); err != nil {
+					return false
+				}
+				return a.Spec.Suspend
+			}, timeout, interval).Should(BeTrue())
+
+			By("Expecting Deployment to scale to 0")
+			Eventually(func() int32 {
+				deployment := &appsv1.Deployment{}
+				if err := k8sClient.Get(ctx, deploymentKey, deployment); err != nil {
+					return -1
+				}
+				if deployment.Spec.Replicas == nil {
+					return 1
+				}
+				return *deployment.Spec.Replicas
+			}, timeout, interval).Should(Equal(int32(0)))
+
+			By("Creating a Task to trigger auto-resume")
+			task := &kubeopenv1alpha1.Task{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      uniqueName("standby-task"),
+					Namespace: testNS,
+				},
+				Spec: kubeopenv1alpha1.TaskSpec{
+					AgentRef: &kubeopenv1alpha1.AgentReference{Name: agentName},
+				},
+			}
+			Expect(k8sClient.Create(ctx, task)).Should(Succeed())
+
+			By("Expecting spec.suspend to become false (auto-resume)")
+			Eventually(func() bool {
+				a := &kubeopenv1alpha1.Agent{}
+				if err := k8sClient.Get(ctx, agentKey, a); err != nil {
+					return true
+				}
+				return a.Spec.Suspend
+			}, timeout, interval).Should(BeFalse())
+
+			By("Expecting Deployment to scale back to 1")
+			Eventually(func() int32 {
+				deployment := &appsv1.Deployment{}
+				if err := k8sClient.Get(ctx, deploymentKey, deployment); err != nil {
+					return -1
+				}
+				if deployment.Spec.Replicas == nil {
+					return 1
+				}
+				return *deployment.Spec.Replicas
+			}, timeout, interval).Should(Equal(int32(1)))
+
+			By("Cleaning up")
+			Expect(k8sClient.Delete(ctx, task)).Should(Succeed())
 			Expect(k8sClient.Delete(ctx, agent)).Should(Succeed())
 		})
 	})

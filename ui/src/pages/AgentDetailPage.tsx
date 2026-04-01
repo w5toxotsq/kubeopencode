@@ -40,11 +40,12 @@ function SuspendResumeButton({ namespace, name, suspended, onSuccess }: { namesp
         setOptimisticSuspended(null);
         setLoading(false);
       }, 1500);
-    } catch (err) {
+    } catch (err: unknown) {
       setOptimisticSuspended(null);
       setLoading(false);
-      setError(newState ? 'Failed to suspend' : 'Failed to resume');
-      setTimeout(() => setError(''), 3000);
+      const isConflict = err instanceof Error && (err.message.includes('409') || err.message.includes('running tasks'));
+      setError(isConflict ? 'Cannot suspend: agent has running tasks' : (newState ? 'Failed to suspend' : 'Failed to resume'));
+      setTimeout(() => setError(''), 5000);
     }
   };
   return (

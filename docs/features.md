@@ -748,11 +748,11 @@ spec:
 
 ## Suspend/Resume
 
-Agents can be suspended to save compute resources. KubeOpenCode supports both manual and automatic suspend.
+Agents can be suspended to save compute resources. `spec.suspend` is the single switch — both humans and the controller operate on it.
 
 ### Manual Suspend
 
-Set `spec.suspend: true` to manually scale the Deployment to 0 replicas. PVCs and Service are retained.
+Set `spec.suspend: true` to scale the Deployment to 0 replicas. PVCs and Service are retained.
 
 ```yaml
 apiVersion: kubeopencode.io/v1alpha1
@@ -762,7 +762,7 @@ metadata:
 spec:
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
-  suspend: true    # manual suspend — scales deployment to 0
+  suspend: true    # scales deployment to 0
   persistence:
     sessions:
       size: "1Gi"
@@ -771,10 +771,11 @@ spec:
 - Tasks targeting a suspended agent enter `Queued` phase with reason `AgentSuspended`
 - Set `suspend: false` to resume — queued tasks start automatically
 - API: `POST /api/v1/namespaces/{ns}/agents/{name}/suspend` and `.../resume`
+- Cannot suspend while tasks are running (API returns 409 Conflict)
 
-### Idle Timeout (Auto-Suspend/Auto-Resume)
+### Standby (Automatic Suspend/Resume)
 
-Set `spec.idleTimeout` to automatically suspend the Agent after a period of inactivity, and auto-resume when new Tasks arrive.
+Configure `spec.standby` for automatic lifecycle management. The controller manages `spec.suspend` automatically — suspending after idle timeout and resuming when new Tasks arrive.
 
 ```yaml
 apiVersion: kubeopencode.io/v1alpha1
@@ -784,7 +785,8 @@ metadata:
 spec:
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
-  idleTimeout: "30m"    # auto-suspend after 30 minutes with no tasks
+  standby:
+    idleTimeout: "30m"    # auto-suspend after 30 minutes with no tasks
   persistence:
     sessions:
       size: "1Gi"
@@ -796,22 +798,22 @@ spec:
 
 1. Agent starts running normally
 2. All Tasks complete → idle timer starts (`status.idleSince` is set)
-3. After 30 minutes with no new Tasks → Deployment scales to 0
-4. New Task arrives → agent controller detects it immediately → scales back to 1
+3. After 30 minutes with no new Tasks → controller sets `spec.suspend = true` → Deployment scales to 0
+4. New Task arrives → controller sets `spec.suspend = false` → Deployment scales back to 1
 5. Agent becomes ready (~30-60s cold start) → queued Task executes
 
-**Priority:** Manual `suspend: true` always takes priority over `idleTimeout`. Auto-resume will not work while manually suspended.
+**Manual override:** Even with standby configured, you can still manually suspend/resume. The controller will resume automatically when new Tasks arrive.
 
 **Condition reasons:**
-- `Suspended: True, reason: UserRequested` — manual suspend
-- `Suspended: True, reason: IdleTimeout` — auto-suspended after idle period
+- `Suspended: True, reason: UserRequested` — suspended (no standby configured)
+- `Suspended: True, reason: Standby` — suspended with standby configured
 - `Suspended: False, reason: Active` — running normally
 
 **Best used with `persistence`**: PVCs survive restarts, so session history and workspace files don't need to be re-initialized on resume.
 
 ### UI
 
-The Agent detail page shows a **Suspend/Resume** button, and the agents list shows a "Suspended" badge. When `idleTimeout` is configured, the detail page shows the idle timeout configuration and current idle duration.
+The Agent detail page shows a **Suspend/Resume** button, and the agents list shows a "Suspended" badge. When standby is configured, the detail page shows the standby configuration and current idle duration.
 
 ## Next Steps
 
