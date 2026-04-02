@@ -70,7 +70,7 @@ function CronTasksPage() {
 
       {isLoading ? (
         <div className="bg-white rounded-xl border border-stone-200 overflow-hidden shadow-sm">
-          <TableSkeleton rows={5} cols={isAllNamespaces ? 8 : 7} />
+          <TableSkeleton rows={5} cols={isAllNamespaces ? 7 : 6} />
         </div>
       ) : error ? (
         <div className="bg-red-50 border border-red-200 rounded-xl p-5">
@@ -104,9 +104,6 @@ function CronTasksPage() {
                 <th className="px-5 py-3 text-left text-[11px] font-display font-medium text-stone-400 uppercase tracking-wider">
                   Status
                 </th>
-                <th className="px-5 py-3 text-left text-[11px] font-display font-medium text-stone-400 uppercase tracking-wider hidden sm:table-cell">
-                  Active
-                </th>
                 <th className="px-5 py-3 text-left text-[11px] font-display font-medium text-stone-400 uppercase tracking-wider hidden lg:table-cell">
                   Last Run
                 </th>
@@ -121,7 +118,7 @@ function CronTasksPage() {
             <tbody className="bg-white divide-y divide-stone-100">
               {data?.cronTasks.length === 0 ? (
                 <tr>
-                  <td colSpan={isAllNamespaces ? 8 : 7} className="px-5 py-12 text-center text-stone-400 text-sm">
+                  <td colSpan={isAllNamespaces ? 7 : 6} className="px-5 py-12 text-center text-stone-400 text-sm">
                     No CronTasks found.{' '}
                     {!isAllNamespaces && (
                       <Link to="/crontasks/create" className="text-primary-600 hover:text-primary-700 font-medium">
@@ -164,17 +161,16 @@ function CronTasksPage() {
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       {ct.suspend ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-stone-100 text-stone-600 border border-stone-200">
+                        <span className="inline-flex items-center text-xs font-medium text-stone-500">
+                          <span className="mr-1.5 inline-flex rounded-full h-1.5 w-1.5 bg-stone-400" />
                           Suspended
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
-                          Active
+                        <span className="inline-flex items-center text-xs font-medium text-emerald-700">
+                          <span className="mr-1.5 inline-flex rounded-full h-1.5 w-1.5 bg-emerald-400" />
+                          Enabled
                         </span>
                       )}
-                    </td>
-                    <td className="px-5 py-3.5 whitespace-nowrap text-sm text-stone-600 hidden sm:table-cell font-mono text-xs">
-                      {ct.active}
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap text-xs text-stone-400 hidden lg:table-cell">
                       {ct.lastScheduleTime ? <TimeAgo date={ct.lastScheduleTime} /> : '-'}
