@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import CodeMirror from '@uiw/react-codemirror';
+import { yaml as yamlLang } from '@codemirror/lang-yaml';
+import { EditorView } from '@codemirror/view';
+import { parse, stringify } from 'yaml';
 
 interface YamlViewerProps {
   queryKey: string[];
@@ -7,12 +11,90 @@ interface YamlViewerProps {
   onSave?: (yaml: string) => Promise<void>;
 }
 
+interface YamlError {
+  message: string;
+  line?: number;
+  col?: number;
+}
+
+function validateYaml(value: string): YamlError | null {
+  if (!value.trim()) return null;
+  try {
+    parse(value);
+    return null;
+  } catch (err: unknown) {
+    const e = err as { message?: string; linePos?: Array<{ line: number; col: number }> };
+    const pos = e.linePos?.[0];
+    return {
+      message: e.message || 'Invalid YAML',
+      line: pos?.line,
+      col: pos?.col,
+    };
+  }
+}
+
+function formatYaml(value: string): { formatted: string; error: string | null } {
+  try {
+    const doc = parse(value);
+    return { formatted: stringify(doc, { indent: 2, lineWidth: 0 }), error: null };
+  } catch (err: unknown) {
+    return { formatted: value, error: (err as Error).message || 'Failed to format' };
+  }
+}
+
+const darkTheme = EditorView.theme({
+  '&': {
+    backgroundColor: '#0c0a09',
+    color: '#d6d3d1',
+    fontSize: '12px',
+  },
+  '.cm-gutters': {
+    backgroundColor: '#1c1917',
+    color: '#78716c',
+    border: 'none',
+    borderRight: '1px solid #292524',
+  },
+  '.cm-activeLineGutter': {
+    backgroundColor: '#292524',
+  },
+  '.cm-activeLine': {
+    backgroundColor: '#1c191780',
+  },
+  '.cm-cursor': {
+    borderLeftColor: '#e7e5e4',
+  },
+  '&.cm-focused .cm-selectionBackground, .cm-selectionBackground': {
+    backgroundColor: '#44403c !important',
+  },
+  '.cm-panels': {
+    backgroundColor: '#1c1917',
+    color: '#d6d3d1',
+    borderBottom: '1px solid #292524',
+  },
+  '.cm-panels input': {
+    backgroundColor: '#0c0a09',
+    color: '#d6d3d1',
+    border: '1px solid #44403c',
+  },
+  '.cm-panels button': {
+    backgroundColor: '#292524',
+    color: '#d6d3d1',
+  },
+  '.cm-searchMatch': {
+    backgroundColor: '#854d0e80',
+  },
+  '.cm-searchMatch.cm-searchMatch-selected': {
+    backgroundColor: '#a16207',
+  },
+});
+
 function YamlViewer({ queryKey, fetchYaml, onSave }: YamlViewerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
+  const [copyLabel, setCopyLabel] = useState('Copy');
 
   const { data: yaml, isLoading, error, refetch } = useQuery({
     queryKey: [...queryKey, 'yaml'],
@@ -52,6 +134,34 @@ function YamlViewer({ queryKey, fetchYaml, onSave }: YamlViewerProps) {
     }
   };
 
+  const handleCopy = useCallback(() => {
+    const text = editing ? editValue : yaml;
+    if (text) {
+      navigator.clipboard.writeText(text);
+      setCopyLabel('Copied!');
+      setTimeout(() => setCopyLabel('Copy'), 1500);
+    }
+  }, [editing, editValue, yaml]);
+
+  const handleFormat = useCallback(() => {
+    const { formatted, error: fmtErr } = formatYaml(editValue);
+    if (!fmtErr) {
+      setEditValue(formatted);
+    }
+    // If format fails, validation error will already show
+  }, [editValue]);
+
+  const yamlError = useMemo(() => {
+    if (!editing) return null;
+    return validateYaml(editValue);
+  }, [editing, editValue]);
+
+  const extensions = useMemo(() => [yamlLang(), darkTheme], []);
+  const readOnlyExtensions = useMemo(
+    () => [yamlLang(), darkTheme, EditorView.editable.of(false)],
+    []
+  );
+
   return (
     <div className="mt-6">
       <button
@@ -73,12 +183,21 @@ function YamlViewer({ queryKey, fetchYaml, onSave }: YamlViewerProps) {
           <div className="px-4 py-2.5 bg-stone-800/50 flex items-center justify-between border-b border-stone-700/50">
             <span className="text-xs text-stone-400 font-display">Resource Definition</span>
             <div className="flex items-center gap-2">
-              {yaml && !editing && (
+              {(yaml || editing) && (
                 <button
-                  onClick={() => navigator.clipboard.writeText(yaml)}
+                  onClick={handleCopy}
                   className="text-[11px] text-stone-500 hover:text-stone-300 transition-colors font-medium"
                 >
-                  Copy
+                  {copyLabel}
+                </button>
+              )}
+              {editing && (
+                <button
+                  onClick={handleFormat}
+                  className="text-[11px] text-amber-400 hover:text-amber-300 transition-colors font-medium"
+                  title="Format YAML (fix indentation)"
+                >
+                  Format
                 </button>
               )}
               {onSave && !editing && yaml && (
@@ -91,23 +210,48 @@ function YamlViewer({ queryKey, fetchYaml, onSave }: YamlViewerProps) {
               )}
             </div>
           </div>
-          <div className="p-4">
+          <div className="yaml-editor">
             {isLoading ? (
-              <span className="text-stone-500 text-sm">Loading...</span>
+              <div className="p-4">
+                <span className="text-stone-500 text-sm">Loading...</span>
+              </div>
             ) : error ? (
-              <span className="text-red-400 text-sm">Error: {(error as Error).message}</span>
+              <div className="p-4">
+                <span className="text-red-400 text-sm">Error: {(error as Error).message}</span>
+              </div>
             ) : editing ? (
               <div>
-                <textarea
+                <CodeMirror
                   value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  className="w-full h-96 bg-stone-950 text-stone-300 font-mono text-xs p-3 rounded-lg border border-stone-700 focus:border-sky-500 focus:outline-none resize-y leading-relaxed"
-                  spellCheck={false}
+                  onChange={setEditValue}
+                  extensions={extensions}
+                  height="384px"
+                  basicSetup={{
+                    lineNumbers: true,
+                    foldGutter: true,
+                    highlightActiveLine: true,
+                    bracketMatching: true,
+                    searchKeymap: true,
+                  }}
                 />
-                {saveError && (
-                  <p className="text-xs text-red-400 mt-2">{saveError}</p>
+                {yamlError && (
+                  <div className="px-4 py-2 bg-red-950/50 border-t border-red-900/50 flex items-start gap-2">
+                    <svg className="w-3.5 h-3.5 text-red-400 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <span className="text-xs text-red-400 font-mono">
+                      {yamlError.line != null
+                        ? `Line ${yamlError.line}, Col ${yamlError.col}: ${yamlError.message}`
+                        : yamlError.message}
+                    </span>
+                  </div>
                 )}
-                <div className="flex items-center justify-end gap-2 mt-3">
+                {saveError && (
+                  <div className="px-4 py-2">
+                    <p className="text-xs text-red-400">{saveError}</p>
+                  </div>
+                )}
+                <div className="flex items-center justify-end gap-2 px-4 py-3 border-t border-stone-700/50">
                   <button
                     onClick={handleCancel}
                     disabled={saving}
@@ -117,17 +261,27 @@ function YamlViewer({ queryKey, fetchYaml, onSave }: YamlViewerProps) {
                   </button>
                   <button
                     onClick={handleSave}
-                    disabled={saving}
+                    disabled={saving || yamlError != null}
                     className="px-3 py-1.5 text-xs font-medium text-white bg-sky-600 rounded-lg hover:bg-sky-700 transition-colors disabled:opacity-50"
+                    title={yamlError ? 'Fix YAML errors before saving' : undefined}
                   >
                     {saving ? 'Saving...' : 'Save'}
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="max-h-96 overflow-y-auto sidebar-scroll">
-                <pre className="text-xs text-stone-300 font-mono whitespace-pre leading-relaxed">{yaml}</pre>
-              </div>
+              <CodeMirror
+                value={yaml || ''}
+                extensions={readOnlyExtensions}
+                height="auto"
+                maxHeight="384px"
+                basicSetup={{
+                  lineNumbers: true,
+                  foldGutter: true,
+                  highlightActiveLine: false,
+                  searchKeymap: true,
+                }}
+              />
             )}
           </div>
         </div>

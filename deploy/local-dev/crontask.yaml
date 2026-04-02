@@ -1,0 +1,34 @@
+# Copyright Contributors to the KubeOpenCode project
+# CronTask example for local testing
+#
+# Scheduled task that runs every 5 minutes using the persistent agent.
+# Demonstrates CronTask features:
+#   - schedule: cron expression for recurring execution
+#   - concurrencyPolicy: Forbid (skip if previous task is still running)
+#   - maxRetainedTasks: safety limit on total child Tasks
+#   - taskTemplate: embedded Task configuration
+#
+# Usage:
+#   kubectl apply -f deploy/local-dev/crontask.yaml
+#   kubectl get crontasks -n test
+#   kubectl annotate crontask scheduled-check kubeopencode.io/trigger=true -n test  # Manual trigger
+#   kubectl patch crontask scheduled-check -n test --type merge -p '{"spec":{"suspend":true}}'  # Suspend
+#
+apiVersion: kubeopencode.io/v1alpha1
+kind: CronTask
+metadata:
+  name: scheduled-check
+spec:
+  schedule: "*/5 * * * *"
+  concurrencyPolicy: Forbid
+  maxRetainedTasks: 5
+  taskTemplate:
+    metadata:
+      labels:
+        type: scheduled
+    spec:
+      agentRef:
+        name: persistent-agent
+      description: |
+        Check the workspace for any issues and report a brief summary.
+        Keep the response concise — just list findings.

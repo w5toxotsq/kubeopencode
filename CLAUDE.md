@@ -27,9 +27,10 @@ KubeOpenCode brings Agentic AI capabilities into the Kubernetes ecosystem. By le
 ### Resource Hierarchy
 
 1. **Task** - Single task execution (the primary API)
-2. **Agent** - AI agent configuration (HOW to execute)
-3. **AgentTemplate** - Reusable base configuration for Agents (optional)
-4. **KubeOpenCodeConfig** - Cluster-scoped system-level configuration (optional, singleton named `cluster`)
+2. **CronTask** - Scheduled/recurring task execution (creates Tasks on cron schedule)
+3. **Agent** - AI agent configuration (HOW to execute)
+4. **AgentTemplate** - Reusable base configuration for Agents (optional)
+5. **KubeOpenCodeConfig** - Cluster-scoped system-level configuration (optional, singleton named `cluster`)
 
 ### Important Design Decisions
 
@@ -37,6 +38,7 @@ KubeOpenCode brings Agentic AI capabilities into the Kubernetes ecosystem. By le
 - **Agent = running instance** - Always creates Deployment + Service (no Pod mode vs Server mode)
 - **agentRef or templateRef** - Task must reference exactly one: an Agent (persistent) or AgentTemplate (ephemeral)
 - **No Batch/BatchRun** - Use Helm/Kustomize (Kubernetes-native approach)
+- **CronTask** - Scheduled task execution (CronTask:Task = CronJob:Job). Creates Tasks on cron schedule with concurrency policy, maxRetainedTasks (blocks creation, does NOT delete), and manual trigger support
 - **Two-container pattern**: Init container (`agentImage`) copies OpenCode binary to `/tools`, Worker container (`executorImage`) runs the server
 
 ### Context System
@@ -74,6 +76,16 @@ Stop running Tasks via annotation: `kubectl annotate task <name> kubeopencode.io
 ### Task Cleanup
 
 Automatic cleanup via `KubeOpenCodeConfig` (cluster-scoped singleton named `cluster`): `ttlSecondsAfterFinished` and/or `maxRetainedTasks` per namespace.
+
+### CronTask (Scheduled Execution)
+
+CronTask creates Tasks on a cron schedule. Key fields: `schedule` (cron expression), `timeZone`, `concurrencyPolicy` (Allow/Forbid/Replace, default Forbid), `maxRetainedTasks` (blocks creation when reached, default 10), `suspend`, `taskTemplate`.
+
+- Manual trigger: annotation `kubeopencode.io/trigger=true` or API `POST /trigger`
+- CronTask does NOT delete Tasks — cleanup is handled by global KubeOpenCodeConfig
+- Generated Tasks are named `{crontask-name}-{unix-timestamp}` with label `kubeopencode.io/crontask={name}`
+
+> See `docs/adr/0025-crontask.md` for design decisions.
 
 ## Code Standards
 
@@ -169,6 +181,7 @@ make agent-buildx AGENT=opencode   # Remote (multi-arch)
 ```
 api/v1alpha1/             # CRD type definitions (types.go, agenttemplate_types.go)
 cmd/kubeopencode/         # Unified binary (controller, git-init, context-init, url-fetch)
+cmd/kubeoc/               # CLI client (kubeoc get agents, kubeoc agent attach, etc.)
 internal/controller/      # Reconcilers (task, agent, agenttemplate, pod_builder, context_resolver, template_merge)
 deploy/crds/              # Generated CRD YAMLs
 deploy/local-dev/         # Local development environment
@@ -179,6 +192,67 @@ docs/                     # Documentation
 ```
 
 ## Making Changes
+
+### New Feature Checklist
+
+> **CRITICAL**: When planning a new feature, go through EVERY item below and mark "needed/not needed" with reason BEFORE writing any code. This prevents missing critical steps mid-development.
+
+**1. API Layer**
+- [ ] `api/v1alpha1/` — New/modified types with kubebuilder markers
+- [ ] `api/v1alpha1/register.go` — Register new resource type
+- [ ] Run `make update` — Regenerate deepcopy + CRDs (`deploy/crds/` and `charts/kubeopencode/crds/`)
+
+**2. Controller Layer**
+- [ ] `internal/controller/` — New/modified reconciler
+- [ ] `cmd/kubeopencode/controller.go` — Register new controller
+- [ ] `internal/controller/pod_builder.go` — If Pod construction changes
+- [ ] `internal/controller/template_merge.go` — If template merge logic changes
+
+**3. Server / API Handler Layer**
+- [ ] `internal/server/server.go` — Register new routes
+- [ ] `internal/server/handlers/` — New handler file
+- [ ] `internal/server/types/types.go` — New request/response types
+
+**4. CLI Layer (`kubeoc`)**
+- [ ] `cmd/kubeoc/` — New/modified subcommands (e.g., `kubeoc get <resource>`, `kubeoc <resource> <action>`)
+- [ ] `cmd/kubeoc/main.go` — Register new subcommand if adding a top-level command
+
+**5. UI Layer**
+- [ ] `ui/src/pages/` — New page components (List / Detail / Create)
+- [ ] `ui/src/App.tsx` — Register routes
+- [ ] `ui/src/components/Layout.tsx` — Sidebar navigation entry
+- [ ] `ui/src/api/client.ts` — API client methods
+
+**6. UI Mock Data**
+- [ ] `ui/src/mocks/data.ts` — Mock data for new resource
+- [ ] `ui/src/mocks/handlers.ts` — MSW handlers for new API endpoints
+
+**7. Tests**
+- [ ] Unit tests — Controller logic (`make test`)
+- [ ] Integration tests — `internal/controller/*_test.go` (`//go:build integration`), update `suite_test.go` scheme if needed
+- [ ] E2E tests — `e2e/*_test.go`, update `suite_test.go` if needed
+- [ ] UI tests — `ui/src/**/__tests__/`
+
+**8. Helm Chart (especially RBAC!)**
+- [ ] `charts/kubeopencode/templates/rbac/controller-clusterrole.yaml` — Controller permissions
+- [ ] `charts/kubeopencode/templates/rbac/web-user-clusterrole.yaml` — UI user permissions
+- [ ] `charts/kubeopencode/templates/server/clusterrole.yaml` — **Server permissions (most commonly missed!)**
+- [ ] `charts/kubeopencode/values.yaml` — New config values if needed
+
+**9. Documentation**
+- [ ] `docs/architecture.md` — Architecture, resource relationships
+- [ ] `docs/features.md` — Feature details, YAML examples
+- [ ] `docs/adr/` — ADR for design decisions (recommended for new features)
+- [ ] `README.md` — User-facing feature summary
+- [ ] `CLAUDE.md` — Update AI assistant guidelines
+- [ ] `deploy/local-dev/` — Example YAML for local testing
+
+**10. Website**
+- [ ] `website/docs/` — Sync with `docs/` (architecture.md, features.md, etc.)
+
+**11. Build Verification**
+- [ ] `make update && make build && make test && make lint && make verify`
+- [ ] `go.mod` / `go.sum` / `vendor/` — If new dependencies added
 
 ### API Changes (Add/Update/Delete Fields)
 

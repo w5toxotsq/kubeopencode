@@ -13,6 +13,7 @@ rules:
   - agenttemplates
   - contexts
   - cronworkflows
+  - crontasks
   - kubeopencodeconfigs
   - tasks
   - webhooktriggers
@@ -34,6 +35,7 @@ rules:
   - agenttemplates/status
   - contexts/status
   - cronworkflows/status
+  - crontasks/status
   - kubeopencodeconfigs/status
   - tasks/status
   - webhooktriggers/status
@@ -48,6 +50,7 @@ rules:
   - kubeopencode.io
   resources:
   - tasks/finalizers
+  - crontasks/finalizers
   - agents/finalizers
   - agenttemplates/finalizers
   verbs:

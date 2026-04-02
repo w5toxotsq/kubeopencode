@@ -6,10 +6,12 @@ import {
   mockTasks,
   mockAgents,
   mockAgentTemplates,
+  mockCronTasks,
+  mockCronTaskHistory,
   mockConfig,
   paginateList,
 } from './data';
-import type { Task, Agent, AgentTemplate } from '../api/client';
+import type { Task, Agent, AgentTemplate, CronTask } from '../api/client';
 
 const API_BASE = '/api/v1';
 
@@ -79,6 +81,15 @@ function buildAgentListResponse(agents: Agent[], url: URL) {
   filtered = sortByCreatedAt(filtered, params.sortOrder);
   const { items, pagination } = paginateList(filtered, params.limit, params.offset);
   return { agents: items, total: filtered.length, pagination };
+}
+
+function buildCronTaskListResponse(cronTasks: CronTask[], url: URL) {
+  const params = parseListParams(url);
+  let filtered = filterByName(cronTasks, params.name);
+  filtered = filterByLabels(filtered, params.labelSelector);
+  filtered = sortByCreatedAt(filtered, params.sortOrder);
+  const { items, pagination } = paginateList(filtered, params.limit, params.offset);
+  return { cronTasks: items, total: filtered.length, pagination };
 }
 
 function buildTemplateListResponse(templates: AgentTemplate[], url: URL) {
@@ -289,6 +300,122 @@ export const handlers = [
       ...agent,
       serverStatus: { ...agent.serverStatus, suspended: false, ready: true },
     });
+  }),
+
+  // === CronTasks ===
+  http.get(`${API_BASE}/crontasks`, ({ request }) => {
+    const url = new URL(request.url);
+    return HttpResponse.json(buildCronTaskListResponse(mockCronTasks, url));
+  }),
+
+  http.get(`${API_BASE}/namespaces/:namespace/crontasks`, ({ params, request }) => {
+    const url = new URL(request.url);
+    const filtered = filterByNamespace(mockCronTasks, params.namespace as string);
+    return HttpResponse.json(buildCronTaskListResponse(filtered, url));
+  }),
+
+  http.get(`${API_BASE}/namespaces/:namespace/crontasks/:name`, ({ params, request }) => {
+    const { namespace, name } = params;
+    const url = new URL(request.url);
+    const cronTask = mockCronTasks.find((ct) => ct.namespace === namespace && ct.name === name);
+    if (!cronTask) {
+      return HttpResponse.json({ error: 'CronTask not found' }, { status: 404 });
+    }
+    if (url.searchParams.get('output') === 'yaml') {
+      return new HttpResponse(
+        `apiVersion: kubeopencode.io/v1alpha1\nkind: CronTask\nmetadata:\n  name: ${name}\n  namespace: ${namespace}\nspec:\n  schedule: "${cronTask.schedule}"\n  concurrencyPolicy: ${cronTask.concurrencyPolicy}\n  maxRetainedTasks: ${cronTask.maxRetainedTasks || 10}\n  taskTemplate:\n    spec:\n      agentRef:\n        name: ${cronTask.taskTemplate.agentRef?.name || 'unknown'}\n      description: "${cronTask.taskTemplate.description || ''}"`,
+        { headers: { 'Content-Type': 'text/plain' } },
+      );
+    }
+    return HttpResponse.json(cronTask);
+  }),
+
+  http.post(`${API_BASE}/namespaces/:namespace/crontasks`, async ({ params, request }) => {
+    const { namespace } = params;
+    const body = await request.json() as Record<string, unknown>;
+    const newCronTask: CronTask = {
+      name: (body.name as string) || `crontask-${Date.now()}`,
+      namespace: namespace as string,
+      schedule: body.schedule as string,
+      timeZone: body.timeZone as string,
+      concurrencyPolicy: (body.concurrencyPolicy as string) || 'Forbid',
+      suspend: false,
+      maxRetainedTasks: (body.maxRetainedTasks as number) || 10,
+      active: 0,
+      totalExecutions: 0,
+      nextScheduleTime: new Date(Date.now() + 3600000).toISOString(),
+      taskTemplate: {
+        description: body.description as string,
+        agentRef: body.agentRef as { name: string },
+        templateRef: body.templateRef as { name: string },
+      },
+      createdAt: new Date().toISOString(),
+      conditions: [
+        { type: 'Ready', status: 'True', reason: 'Scheduled', message: 'Waiting for next schedule' },
+      ],
+    };
+    return HttpResponse.json(newCronTask, { status: 201 });
+  }),
+
+  http.put(`${API_BASE}/namespaces/:namespace/crontasks/:name`, async ({ params, request }) => {
+    const { namespace, name } = params;
+    const cronTask = mockCronTasks.find((ct) => ct.namespace === namespace && ct.name === name);
+    if (!cronTask) {
+      return HttpResponse.json({ error: 'CronTask not found' }, { status: 404 });
+    }
+    const body = await request.json() as Record<string, unknown>;
+    return HttpResponse.json({ ...cronTask, ...body });
+  }),
+
+  http.delete(`${API_BASE}/namespaces/:namespace/crontasks/:name`, ({ params }) => {
+    const { namespace, name } = params;
+    const cronTask = mockCronTasks.find((ct) => ct.namespace === namespace && ct.name === name);
+    if (!cronTask) {
+      return HttpResponse.json({ error: 'CronTask not found' }, { status: 404 });
+    }
+    return new HttpResponse(null, { status: 204 });
+  }),
+
+  http.post(`${API_BASE}/namespaces/:namespace/crontasks/:name/suspend`, ({ params }) => {
+    const { namespace, name } = params;
+    const cronTask = mockCronTasks.find((ct) => ct.namespace === namespace && ct.name === name);
+    if (!cronTask) {
+      return HttpResponse.json({ error: 'CronTask not found' }, { status: 404 });
+    }
+    return HttpResponse.json({
+      ...cronTask,
+      suspend: true,
+      nextScheduleTime: null,
+      conditions: [{ type: 'Ready', status: 'False', reason: 'Suspended', message: 'CronTask is suspended' }],
+    });
+  }),
+
+  http.post(`${API_BASE}/namespaces/:namespace/crontasks/:name/resume`, ({ params }) => {
+    const { namespace, name } = params;
+    const cronTask = mockCronTasks.find((ct) => ct.namespace === namespace && ct.name === name);
+    if (!cronTask) {
+      return HttpResponse.json({ error: 'CronTask not found' }, { status: 404 });
+    }
+    return HttpResponse.json({
+      ...cronTask,
+      suspend: false,
+      nextScheduleTime: new Date(Date.now() + 3600000).toISOString(),
+      conditions: [{ type: 'Ready', status: 'True', reason: 'Scheduled', message: 'Task created successfully' }],
+    });
+  }),
+
+  http.post(`${API_BASE}/namespaces/:namespace/crontasks/:name/trigger`, ({ params }) => {
+    const { name } = params;
+    return HttpResponse.json({ message: `CronTask "${name}" triggered` });
+  }),
+
+  http.get(`${API_BASE}/namespaces/:namespace/crontasks/:name/history`, ({ params, request }) => {
+    const { name } = params;
+    const url = new URL(request.url);
+    const historyTasks = mockCronTaskHistory.filter(
+      (t) => t.labels?.['kubeopencode.io/crontask'] === name,
+    );
+    return HttpResponse.json(buildTaskListResponse(historyTasks.length > 0 ? historyTasks : mockCronTaskHistory, url));
   }),
 
   // === Agent Templates ===

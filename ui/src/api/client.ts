@@ -197,6 +197,53 @@ export interface ConfigResponse {
   labels?: Record<string, string>;
 }
 
+// CronTask types
+export interface CronTaskTemplateInfo {
+  description?: string;
+  agentRef?: AgentReference;
+  templateRef?: AgentReference;
+}
+
+export interface CronTask {
+  name: string;
+  namespace: string;
+  schedule: string;
+  timeZone?: string;
+  concurrencyPolicy: string;
+  suspend: boolean;
+  maxRetainedTasks?: number;
+  startingDeadlineSeconds?: number;
+  active: number;
+  lastScheduleTime?: string;
+  lastSuccessfulTime?: string;
+  nextScheduleTime?: string;
+  totalExecutions: number;
+  taskTemplate: CronTaskTemplateInfo;
+  createdAt: string;
+  labels?: Record<string, string>;
+  conditions?: Condition[];
+}
+
+export interface CronTaskListResponse {
+  cronTasks: CronTask[];
+  total: number;
+  pagination?: Pagination;
+}
+
+export interface CreateCronTaskRequest {
+  name?: string;
+  schedule: string;
+  timeZone?: string;
+  concurrencyPolicy?: string;
+  suspend?: boolean;
+  startingDeadlineSeconds?: number;
+  maxRetainedTasks?: number;
+  description?: string;
+  agentRef?: AgentReference;
+  templateRef?: { name: string };
+  contexts?: ContextItem[];
+}
+
 export interface ServerInfo {
   version: string;
 }
@@ -402,6 +449,73 @@ export const api = {
       const error = await response.json().catch(() => ({ error: 'Unknown error' }));
       throw new Error(error.message || error.error || `HTTP ${response.status}`);
     }
+  },
+
+  // CronTasks
+  listAllCronTasks: (params?: FilterParams) => {
+    const searchParams = new URLSearchParams();
+    if (params?.name) searchParams.set('name', params.name);
+    if (params?.labelSelector) searchParams.set('labelSelector', params.labelSelector);
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.offset !== undefined) searchParams.set('offset', params.offset.toString());
+    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    const queryString = searchParams.toString();
+    return request<CronTaskListResponse>(`/crontasks${queryString ? `?${queryString}` : ''}`);
+  },
+
+  listCronTasks: (namespace: string, params?: FilterParams) => {
+    const searchParams = new URLSearchParams();
+    if (params?.name) searchParams.set('name', params.name);
+    if (params?.labelSelector) searchParams.set('labelSelector', params.labelSelector);
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.offset !== undefined) searchParams.set('offset', params.offset.toString());
+    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    const queryString = searchParams.toString();
+    return request<CronTaskListResponse>(`/namespaces/${namespace}/crontasks${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getCronTask: (namespace: string, name: string) =>
+    request<CronTask>(`/namespaces/${namespace}/crontasks/${name}`),
+
+  getCronTaskYaml: async (namespace: string, name: string): Promise<string> => {
+    const response = await fetch(`${API_BASE}/namespaces/${namespace}/crontasks/${name}?output=yaml`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.text();
+  },
+
+  createCronTask: (namespace: string, cronTask: CreateCronTaskRequest) =>
+    request<CronTask>(`/namespaces/${namespace}/crontasks`, {
+      method: 'POST',
+      body: JSON.stringify(cronTask),
+    }),
+
+  updateCronTask: (namespace: string, name: string, data: Partial<CreateCronTaskRequest>) =>
+    request<CronTask>(`/namespaces/${namespace}/crontasks/${name}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  deleteCronTask: (namespace: string, name: string) =>
+    request<void>(`/namespaces/${namespace}/crontasks/${name}`, {
+      method: 'DELETE',
+    }),
+
+  suspendCronTask: (namespace: string, name: string) =>
+    request<CronTask>(`/namespaces/${namespace}/crontasks/${name}/suspend`, { method: 'POST' }),
+
+  resumeCronTask: (namespace: string, name: string) =>
+    request<CronTask>(`/namespaces/${namespace}/crontasks/${name}/resume`, { method: 'POST' }),
+
+  triggerCronTask: (namespace: string, name: string) =>
+    request<{ message: string }>(`/namespaces/${namespace}/crontasks/${name}/trigger`, { method: 'POST' }),
+
+  getCronTaskHistory: (namespace: string, name: string, params?: FilterParams) => {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.set('limit', params.limit.toString());
+    if (params?.offset !== undefined) searchParams.set('offset', params.offset.toString());
+    if (params?.sortOrder) searchParams.set('sortOrder', params.sortOrder);
+    const queryString = searchParams.toString();
+    return request<TaskListResponse>(`/namespaces/${namespace}/crontasks/${name}/history${queryString ? `?${queryString}` : ''}`);
   },
 
   // Config (cluster-scoped singleton)

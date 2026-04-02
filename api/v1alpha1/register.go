@@ -39,6 +39,8 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 	scheme.AddKnownTypes(GroupVersion,
 		&Task{},
 		&TaskList{},
+		&CronTask{},
+		&CronTaskList{},
 		&Agent{},
 		&AgentList{},
 		&AgentTemplate{},

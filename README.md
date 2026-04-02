@@ -64,6 +64,7 @@ KubeOpenCode is a Kubernetes-native agent platform that enables teams to deploy,
 ### Core Concepts
 
 - **Task**: Single task execution (the primary API). References either an Agent (`agentRef`) or a template (`templateRef`).
+- **CronTask**: Scheduled/recurring task execution — creates Tasks on a cron schedule with concurrency policies.
 - **Agent**: Running AI agent instance — always creates a Deployment + Service. Interactive access via CLI, web terminal, or programmatic Tasks.
 - **AgentTemplate**: Reusable blueprint for Agents (configuration inheritance) and for ephemeral Tasks (one-off Pods without a persistent Agent).
 - **KubeOpenCodeConfig**: System-level configuration (optional)

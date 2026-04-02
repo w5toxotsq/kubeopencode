@@ -248,6 +248,67 @@ type ProxyConfigInfo struct {
 	NoProxy    string `json:"noProxy,omitempty"`
 }
 
+// CreateCronTaskRequest represents a request to create a CronTask
+type CreateCronTaskRequest struct {
+	Name                    string                  `json:"name,omitempty"`
+	Schedule                string                  `json:"schedule"`
+	TimeZone                string                  `json:"timeZone,omitempty"`
+	ConcurrencyPolicy       string                  `json:"concurrencyPolicy,omitempty"`
+	Suspend                 bool                    `json:"suspend,omitempty"`
+	StartingDeadlineSeconds *int64                  `json:"startingDeadlineSeconds,omitempty"`
+	MaxRetainedTasks        *int32                  `json:"maxRetainedTasks,omitempty"`
+	Description             string                  `json:"description,omitempty"`
+	AgentRef                *AgentReference         `json:"agentRef,omitempty"`
+	TemplateRef             *AgentTemplateReference `json:"templateRef,omitempty"`
+	Contexts                []ContextItem           `json:"contexts,omitempty"`
+}
+
+// UpdateCronTaskRequest represents a request to update a CronTask
+type UpdateCronTaskRequest struct {
+	Schedule                string  `json:"schedule,omitempty"`
+	TimeZone                *string `json:"timeZone,omitempty"`
+	ConcurrencyPolicy       string  `json:"concurrencyPolicy,omitempty"`
+	Suspend                 *bool   `json:"suspend,omitempty"`
+	StartingDeadlineSeconds *int64  `json:"startingDeadlineSeconds,omitempty"`
+	MaxRetainedTasks        *int32  `json:"maxRetainedTasks,omitempty"`
+	Description             *string `json:"description,omitempty"`
+}
+
+// CronTaskResponse represents a CronTask in API responses
+type CronTaskResponse struct {
+	Name                    string               `json:"name"`
+	Namespace               string               `json:"namespace"`
+	Schedule                string               `json:"schedule"`
+	TimeZone                string               `json:"timeZone,omitempty"`
+	ConcurrencyPolicy       string               `json:"concurrencyPolicy"`
+	Suspend                 bool                  `json:"suspend"`
+	MaxRetainedTasks        int32                 `json:"maxRetainedTasks,omitempty"`
+	StartingDeadlineSeconds *int64                `json:"startingDeadlineSeconds,omitempty"`
+	Active                  int32                 `json:"active"`
+	LastScheduleTime        *time.Time            `json:"lastScheduleTime,omitempty"`
+	LastSuccessfulTime      *time.Time            `json:"lastSuccessfulTime,omitempty"`
+	NextScheduleTime        *time.Time            `json:"nextScheduleTime,omitempty"`
+	TotalExecutions         int64                 `json:"totalExecutions"`
+	TaskTemplate            CronTaskTemplateInfo  `json:"taskTemplate"`
+	CreatedAt               time.Time             `json:"createdAt"`
+	Labels                  map[string]string     `json:"labels,omitempty"`
+	Conditions              []Condition           `json:"conditions,omitempty"`
+}
+
+// CronTaskTemplateInfo represents the task template in CronTask responses
+type CronTaskTemplateInfo struct {
+	Description string                  `json:"description,omitempty"`
+	AgentRef    *AgentReference         `json:"agentRef,omitempty"`
+	TemplateRef *AgentTemplateReference `json:"templateRef,omitempty"`
+}
+
+// CronTaskListResponse represents a list of CronTasks
+type CronTaskListResponse struct {
+	CronTasks  []CronTaskResponse `json:"cronTasks"`
+	Total      int                `json:"total"`
+	Pagination *Pagination        `json:"pagination,omitempty"`
+}
+
 // ErrorResponse represents an error response
 type ErrorResponse struct {
 	Error   string `json:"error"`

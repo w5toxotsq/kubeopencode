@@ -1,0 +1,565 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.16.5
+  name: crontasks.kubeopencode.io
+spec:
+  group: kubeopencode.io
+  names:
+    kind: CronTask
+    listKind: CronTaskList
+    plural: crontasks
+    shortNames:
+    - ct
+    singular: crontask
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.schedule
+      name: Schedule
+      type: string
+    - jsonPath: .spec.suspend
+      name: Suspend
+      type: boolean
+    - jsonPath: .status.active
+      name: Active
+      priority: 1
+      type: integer
+    - jsonPath: .status.lastScheduleTime
+      name: Last Schedule
+      type: date
+    - jsonPath: .status.nextScheduleTime
+      name: Next Schedule
+      priority: 1
+      type: date
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: |-
+          CronTask defines a scheduled Task execution.
+          CronTask is a Task factory that creates Task objects on a cron schedule.
+          It is analogous to Kubernetes CronJob, but creates Tasks instead of Jobs.
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: Spec defines the desired state of CronTask
+            properties:
+              concurrencyPolicy:
+                default: Forbid
+                description: |-
+                  ConcurrencyPolicy specifies how to handle concurrent executions
+                  of Tasks created by this CronTask.
+
+                  - "Allow": allows concurrent Task executions (multiple Tasks can run simultaneously)
+                  - "Forbid": skips the new Task if the previous one is still running (default)
+                  - "Replace": stops the running Task and creates a new one
+                enum:
+                - Allow
+                - Forbid
+                - Replace
+                type: string
+              maxRetainedTasks:
+                default: 10
+                description: |-
+                  MaxRetainedTasks is the maximum number of child Tasks (in any state)
+                  that can exist for this CronTask. When the limit is reached, new
+                  scheduled Tasks are skipped until existing Tasks are cleaned up
+                  (by global KubeOpenCodeConfig cleanup or manual deletion).
+
+                  This acts as a safety valve to prevent unbounded Task accumulation.
+                  Defaults to 10.
+                format: int32
+                minimum: 1
+                type: integer
+              schedule:
+                description: |-
+                  Schedule in Cron format.
+                  Uses standard 5-field cron syntax: minute hour day-of-month month day-of-week.
+
+                  Examples:
+                    "0 9 * * 1-5"   → Every weekday at 09:00
+                    "*/30 * * * *"  → Every 30 minutes
+                    "0 0 1 * *"     → First day of every month at midnight
+                type: string
+              startingDeadlineSeconds:
+                description: |-
+                  StartingDeadlineSeconds is the deadline in seconds for starting
+                  the Task if it misses its scheduled time for any reason.
+                  Missed Tasks past this deadline are counted as missed and skipped.
+                  If not specified, there is no deadline.
+                format: int64
+                minimum: 0
+                type: integer
+              suspend:
+                description: |-
+                  Suspend tells the controller to suspend subsequent executions.
+                  Existing running Tasks are not affected. Defaults to false.
+                type: boolean
+              taskTemplate:
+                description: TaskTemplate is the template for Tasks created by this
+                  CronTask.
+                properties:
+                  metadata:
+                    description: |-
+                      Metadata is the metadata to apply to created Tasks.
+                      Only labels and annotations are supported.
+                    properties:
+                      annotations:
+                        additionalProperties:
+                          type: string
+                        description: Annotations to apply to the created Task.
+                        type: object
+                      labels:
+                        additionalProperties:
+                          type: string
+                        description: Labels to apply to the created Task.
+                        type: object
+                    type: object
+                  spec:
+                    description: Spec is the TaskSpec for created Tasks.
+                    properties:
+                      agentRef:
+                        description: |-
+                          AgentRef references a running Agent in the same namespace.
+                          The Task creates a lightweight Pod that connects to the Agent's server
+                          via `opencode run --attach`.
+                          Exactly one of agentRef or templateRef must be set.
+                        properties:
+                          name:
+                            description: Name of the Agent.
+                            type: string
+                        required:
+                        - name
+                        type: object
+                      contexts:
+                        description: |-
+                          Contexts provides additional context for the task.
+                          Contexts are processed in array order, with later contexts taking precedence.
+
+                          Context priority (lowest to highest):
+                            1. Agent/Template contexts (defaults)
+                            2. Task.contexts (Task-specific contexts)
+                            3. Task.description (highest, becomes ${WORKSPACE_DIR}/task.md)
+
+                          Example:
+                            contexts:
+                              - type: Text
+                                text: "Always use conventional commits"
+                              - type: Git
+                                mountPath: src
+                                git:
+                                  repository: https://github.com/org/repo
+                                  ref: main
+                        items:
+                          description: |-
+                            ContextItem defines context with content and mount path.
+                            Used directly in Task/Agent specs to provide additional context for task execution.
+                          properties:
+                            configMap:
+                              description: ConfigMap context (required when Type ==
+                                "ConfigMap")
+                              properties:
+                                key:
+                                  description: |-
+                                    Key specifies a single key to mount as a file.
+                                    If not specified, all keys are mounted as files in the directory.
+                                  type: string
+                                name:
+                                  description: Name of the ConfigMap
+                                  type: string
+                                optional:
+                                  description: Optional specifies whether the ConfigMap
+                                    must exist.
+                                  type: boolean
+                              required:
+                              - name
+                              type: object
+                            description:
+                              description: |-
+                                Description provides human-readable documentation for this context.
+                                This is purely for documentation purposes and does not affect behavior.
+                                Useful for explaining why a context is included or what it provides.
+                              type: string
+                            fileMode:
+                              description: |-
+                                FileMode is the file permission mode for the mounted file (e.g., 0755 for executable scripts).
+                                Only applicable when MountPath is specified.
+                                If not specified, defaults to 0644.
+                              format: int32
+                              type: integer
+                            git:
+                              description: Git context (required when Type == "Git")
+                              properties:
+                                depth:
+                                  default: 1
+                                  description: |-
+                                    Depth specifies the clone depth for shallow cloning.
+                                    1 means shallow clone (fastest), 0 means full clone.
+                                    Defaults to 1 for efficiency.
+                                  type: integer
+                                path:
+                                  description: |-
+                                    Path is the path within the repository to mount.
+                                    Can be a file or directory. If empty, the entire repository is mounted.
+
+                                    Note on .git directory:
+                                      - If Path is empty (entire repo): The mounted directory WILL contain .git/
+                                      - If Path is specified (subdirectory): The mounted directory will NOT contain .git/
+
+                                    Example: ".claude/", "docs/guide.md"
+                                  type: string
+                                recurseSubmodules:
+                                  description: |-
+                                    RecurseSubmodules enables recursive cloning of Git submodules.
+                                    If true, submodules are initialized and cloned along with the repository.
+                                    Defaults to false (submodules are not cloned).
+                                  type: boolean
+                                ref:
+                                  default: HEAD
+                                  description: |-
+                                    Ref is the Git reference (branch, tag, or commit SHA).
+                                    Defaults to "HEAD" if not specified.
+                                  type: string
+                                repository:
+                                  description: |-
+                                    Repository is the Git repository URL.
+                                    Example: "https://github.com/org/contexts"
+                                  type: string
+                                secretRef:
+                                  description: |-
+                                    SecretRef references a Secret containing Git credentials.
+                                    The Secret should contain one of:
+                                      - "username" + "password": For HTTPS token-based auth (password can be a PAT)
+                                      - "ssh-privatekey": For SSH key-based auth
+                                    If not specified, anonymous clone is attempted.
+                                  properties:
+                                    name:
+                                      description: Name of the Secret containing Git
+                                        credentials.
+                                      type: string
+                                  required:
+                                  - name
+                                  type: object
+                              required:
+                              - repository
+                              type: object
+                            mountPath:
+                              description: |-
+                                MountPath specifies where this context should be mounted in the agent pod.
+
+                                Path resolution follows Tekton conventions:
+                                - Absolute paths (starting with "/") are used as-is
+                                - Relative paths (NOT starting with "/") are prefixed with the agent's workspaceDir
+
+                                If not specified, the content is appended to task.md with XML tags.
+
+                                Note: For Runtime context type, MountPath is ignored - content is always
+                                appended to task.md.
+                              type: string
+                            name:
+                              description: |-
+                                Name is an optional identifier for this context.
+                                Used for:
+                                  - Logging and debugging (clearer error messages)
+                                  - XML tag generation (appears in task.md context blocks)
+                                  - Context deduplication (same-named contexts can override each other)
+                                If not specified, a default name is generated based on the context type and index.
+                              type: string
+                            runtime:
+                              description: |-
+                                Runtime context (optional when Type == "Runtime")
+                                Enables KubeOpenCode platform awareness. The controller injects a system prompt
+                                that explains the runtime environment to the agent.
+                              type: object
+                            text:
+                              description: |-
+                                Text is the text content (required when Type == "Text").
+                                Contains text content defined directly in YAML.
+                              type: string
+                            type:
+                              description: 'Type of context source: Text, ConfigMap,
+                                Git, Runtime, Secret, or URL'
+                              enum:
+                              - Text
+                              - ConfigMap
+                              - Git
+                              - Runtime
+                              - URL
+                              type: string
+                            url:
+                              description: |-
+                                URL context (required when Type == "URL")
+                                Fetches content from a remote HTTP/HTTPS URL at task execution time.
+                              properties:
+                                headers:
+                                  additionalProperties:
+                                    type: string
+                                  description: |-
+                                    Headers specifies HTTP headers to include in the request.
+                                    Useful for authentication tokens or custom headers.
+                                    Example: {"Authorization": "Bearer token123"}
+                                  type: object
+                                insecureSkipTLSVerify:
+                                  description: |-
+                                    InsecureSkipTLSVerify skips TLS certificate verification.
+                                    WARNING: This is insecure and should only be used for testing
+                                    or with self-signed certificates in controlled environments.
+                                  type: boolean
+                                secretRef:
+                                  description: |-
+                                    SecretRef references a Secret containing authentication credentials.
+                                    The Secret can contain:
+                                      - "token": Used as Bearer token in Authorization header
+                                      - "username" + "password": Used for HTTP Basic authentication
+                                    If both Headers["Authorization"] and SecretRef are specified,
+                                    SecretRef takes precedence.
+                                  properties:
+                                    name:
+                                      description: Name of the Secret containing authentication
+                                        credentials.
+                                      type: string
+                                  required:
+                                  - name
+                                  type: object
+                                source:
+                                  description: |-
+                                    Source is the URL to fetch content from.
+                                    Must be a valid HTTP or HTTPS URL.
+                                  type: string
+                                timeout:
+                                  default: 30
+                                  description: |-
+                                    Timeout specifies the request timeout in seconds.
+                                    Defaults to 30 seconds if not specified.
+                                  format: int32
+                                  type: integer
+                              required:
+                              - source
+                              type: object
+                          required:
+                          - type
+                          type: object
+                          x-kubernetes-validations:
+                          - message: text is required when type is Text
+                            rule: self.type != 'Text' || has(self.text)
+                          - message: configMap is required when type is ConfigMap
+                            rule: self.type != 'ConfigMap' || has(self.configMap)
+                          - message: git is required when type is Git
+                            rule: self.type != 'Git' || has(self.git)
+                          - message: url is required when type is URL
+                            rule: self.type != 'URL' || has(self.url)
+                          - message: mountPath is required for Git context type
+                            rule: self.type != 'Git' || has(self.mountPath)
+                        type: array
+                      description:
+                        description: |-
+                          Description is the task instruction/prompt.
+                          The controller creates ${WORKSPACE_DIR}/task.md with this content
+                          (where WORKSPACE_DIR is configured in Agent.spec.workspaceDir, defaulting to "/workspace").
+                          This is the primary way to tell the agent what to do.
+
+                          Example:
+                            description: "Update all dependencies and create a PR"
+                        type: string
+                      templateRef:
+                        description: |-
+                          TemplateRef references an AgentTemplate in the same namespace.
+                          The Task creates an ephemeral Pod using the template's configuration.
+                          The Pod runs standalone `opencode run` and has the same lifecycle as the Task.
+                          Exactly one of agentRef or templateRef must be set.
+                        properties:
+                          name:
+                            description: Name of the AgentTemplate.
+                            type: string
+                        required:
+                        - name
+                        type: object
+                    type: object
+                    x-kubernetes-validations:
+                    - message: either agentRef or templateRef must be specified
+                      rule: has(self.agentRef) || has(self.templateRef)
+                    - message: only one of agentRef or templateRef can be specified
+                      rule: '!(has(self.agentRef) && has(self.templateRef))'
+                required:
+                - spec
+                type: object
+              timeZone:
+                description: |-
+                  TimeZone is the IANA timezone for the cron schedule.
+                  If not specified, UTC is used.
+
+                  Example: "Asia/Shanghai", "America/New_York", "Europe/London"
+                type: string
+            required:
+            - schedule
+            - taskTemplate
+            type: object
+          status:
+            description: Status represents the current status of the CronTask
+            properties:
+              active:
+                description: |-
+                  Active is the number of currently active (Pending/Queued/Running) Tasks
+                  created by this CronTask.
+                format: int32
+                type: integer
+              activeRefs:
+                description: ActiveRefs is the list of references to currently active
+                  Tasks.
+                items:
+                  description: ObjectReference contains enough information to let
+                    you inspect or modify the referred object.
+                  properties:
+                    apiVersion:
+                      description: API version of the referent.
+                      type: string
+                    fieldPath:
+                      description: |-
+                        If referring to a piece of an object instead of an entire object, this string
+                        should contain a valid JSON/Go field access statement, such as desiredState.manifest.containers[2].
+                        For example, if the object reference is to a container within a pod, this would take on a value like:
+                        "spec.containers{name}" (where "name" refers to the name of the container that triggered
+                        the event) or if no container name is specified "spec.containers[2]" (container with
+                        index 2 in this pod). This syntax is chosen only to have some well-defined way of
+                        referencing a part of an object.
+                      type: string
+                    kind:
+                      description: |-
+                        Kind of the referent.
+                        More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+                      type: string
+                    name:
+                      description: |-
+                        Name of the referent.
+                        More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                      type: string
+                    namespace:
+                      description: |-
+                        Namespace of the referent.
+                        More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/namespaces/
+                      type: string
+                    resourceVersion:
+                      description: |-
+                        Specific resourceVersion to which this reference is made, if any.
+                        More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
+                      type: string
+                    uid:
+                      description: |-
+                        UID of the referent.
+                        More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#uids
+                      type: string
+                  type: object
+                  x-kubernetes-map-type: atomic
+                type: array
+              conditions:
+                description: Conditions represent the latest available observations
+                  of the CronTask's state.
+                items:
+                  description: Condition contains details for one aspect of the current
+                    state of this API Resource.
+                  properties:
+                    lastTransitionTime:
+                      description: |-
+                        lastTransitionTime is the last time the condition transitioned from one status to another.
+                        This should be when the underlying condition changed.  If that is not known, then using the time when the API field changed is acceptable.
+                      format: date-time
+                      type: string
+                    message:
+                      description: |-
+                        message is a human readable message indicating details about the transition.
+                        This may be an empty string.
+                      maxLength: 32768
+                      type: string
+                    observedGeneration:
+                      description: |-
+                        observedGeneration represents the .metadata.generation that the condition was set based upon.
+                        For instance, if .metadata.generation is currently 12, but the .status.conditions[x].observedGeneration is 9, the condition is out of date
+                        with respect to the current state of the instance.
+                      format: int64
+                      minimum: 0
+                      type: integer
+                    reason:
+                      description: |-
+                        reason contains a programmatic identifier indicating the reason for the condition's last transition.
+                        Producers of specific condition types may define expected values and meanings for this field,
+                        and whether the values are considered a guaranteed API.
+                        The value should be a CamelCase string.
+                        This field may not be empty.
+                      maxLength: 1024
+                      minLength: 1
+                      pattern: ^[A-Za-z]([A-Za-z0-9_,:]*[A-Za-z0-9_])?$
+                      type: string
+                    status:
+                      description: status of the condition, one of True, False, Unknown.
+                      enum:
+                      - "True"
+                      - "False"
+                      - Unknown
+                      type: string
+                    type:
+                      description: type of condition in CamelCase or in foo.example.com/CamelCase.
+                      maxLength: 316
+                      pattern: ^([a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*/)?(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])$
+                      type: string
+                  required:
+                  - lastTransitionTime
+                  - message
+                  - reason
+                  - status
+                  - type
+                  type: object
+                type: array
+                x-kubernetes-list-map-keys:
+                - type
+                x-kubernetes-list-type: map
+              lastScheduleTime:
+                description: |-
+                  LastScheduleTime is the last time a Task was successfully scheduled
+                  (created) by this CronTask.
+                format: date-time
+                type: string
+              lastSuccessfulTime:
+                description: |-
+                  LastSuccessfulTime is the last time a Task created by this CronTask
+                  completed successfully (phase = Completed).
+                format: date-time
+                type: string
+              nextScheduleTime:
+                description: NextScheduleTime is the next calculated schedule time.
+                format: date-time
+                type: string
+              totalExecutions:
+                description: |-
+                  TotalExecutions is the total number of Tasks created by this CronTask
+                  since its creation.
+                format: int64
+                type: integer
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}

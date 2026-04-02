@@ -10,6 +10,9 @@ import AgentDetailPage from './pages/AgentDetailPage';
 import AgentCreatePage from './pages/AgentCreatePage';
 import AgentTemplatesPage from './pages/AgentTemplatesPage';
 import AgentTemplateDetailPage from './pages/AgentTemplateDetailPage';
+import CronTasksPage from './pages/CronTasksPage';
+import CronTaskCreatePage from './pages/CronTaskCreatePage';
+import CronTaskDetailPage from './pages/CronTaskDetailPage';
 import ConfigPage from './pages/ConfigPage';
 
 function App() {
@@ -22,6 +25,9 @@ function App() {
           <Route path="tasks" element={<TasksPage />} />
           <Route path="tasks/create" element={<TaskCreatePage />} />
           <Route path="tasks/:namespace/:name" element={<TaskDetailPage />} />
+          <Route path="crontasks" element={<CronTasksPage />} />
+          <Route path="crontasks/create" element={<CronTaskCreatePage />} />
+          <Route path="crontasks/:namespace/:name" element={<CronTaskDetailPage />} />
           <Route path="agents" element={<AgentsPage />} />
           <Route path="agents/create" element={<AgentCreatePage />} />
           <Route path="agents/:namespace/:name" element={<AgentDetailPage />} />

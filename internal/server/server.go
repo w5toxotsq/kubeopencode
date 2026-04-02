@@ -187,6 +187,21 @@ func (s *Server) setupRoutes() *chi.Mux {
 			r.Get("/{name}/logs", taskHandler.GetLogs)
 		})
 
+		// CronTask endpoints
+		cronTaskHandler := handlers.NewCronTaskHandler(s.k8sClient)
+		r.Get("/crontasks", cronTaskHandler.ListAll)
+		r.Route("/namespaces/{namespace}/crontasks", func(r chi.Router) {
+			r.Get("/", cronTaskHandler.List)
+			r.Post("/", cronTaskHandler.Create)
+			r.Get("/{name}", cronTaskHandler.Get)
+			r.Put("/{name}", cronTaskHandler.Update)
+			r.Delete("/{name}", cronTaskHandler.Delete)
+			r.Post("/{name}/suspend", cronTaskHandler.Suspend)
+			r.Post("/{name}/resume", cronTaskHandler.Resume)
+			r.Post("/{name}/trigger", cronTaskHandler.Trigger)
+			r.Get("/{name}/history", cronTaskHandler.History)
+		})
+
 		// AgentTemplate endpoints
 		agentTemplateHandler := handlers.NewAgentTemplateHandler(s.k8sClient)
 		r.Get("/agenttemplates", agentTemplateHandler.ListAll)

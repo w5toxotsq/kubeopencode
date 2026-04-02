@@ -1,8 +1,9 @@
 // Mock data fixtures for tests and development mode
 
 import type {
-  Task, Agent, AgentTemplate,
+  Task, Agent, AgentTemplate, CronTask,
   TaskListResponse, AgentListResponse, AgentTemplateListResponse,
+  CronTaskListResponse,
   ConfigResponse,
 } from '../api/client';
 
@@ -464,6 +465,207 @@ export const mockAgentTemplates: AgentTemplate[] = [
   },
 ];
 
+export const mockCronTasks: CronTask[] = [
+  {
+    name: 'daily-vuln-scan',
+    namespace: 'default',
+    schedule: '0 9 * * 1-5',
+    timeZone: 'Asia/Shanghai',
+    concurrencyPolicy: 'Forbid',
+    suspend: false,
+    maxRetainedTasks: 10,
+    active: 1,
+    lastScheduleTime: '2026-04-02T01:00:00Z',
+    lastSuccessfulTime: '2026-04-01T01:12:00Z',
+    nextScheduleTime: '2026-04-03T01:00:00Z',
+    totalExecutions: 15,
+    taskTemplate: {
+      description: 'Scan all Go dependencies for security vulnerabilities. If critical/high severity found, create a PR with the fix.',
+      agentRef: { name: 'opencode-agent' },
+    },
+    createdAt: '2026-03-15T00:00:00Z',
+    labels: { team: 'security', type: 'scheduled' },
+    conditions: [
+      { type: 'Ready', status: 'True', reason: 'Scheduled', message: 'Task created successfully' },
+    ],
+  },
+  {
+    name: 'weekly-code-review',
+    namespace: 'default',
+    schedule: '0 10 * * 1',
+    concurrencyPolicy: 'Forbid',
+    suspend: true,
+    maxRetainedTasks: 5,
+    active: 0,
+    lastScheduleTime: '2026-03-25T10:00:00Z',
+    lastSuccessfulTime: '2026-03-25T10:45:00Z',
+    totalExecutions: 8,
+    taskTemplate: {
+      description: 'Review all PRs merged last week. Generate summary report with code quality metrics.',
+      agentRef: { name: 'opencode-agent' },
+    },
+    createdAt: '2026-02-01T00:00:00Z',
+    labels: { team: 'backend', type: 'review' },
+    conditions: [
+      { type: 'Ready', status: 'False', reason: 'Suspended', message: 'CronTask is suspended' },
+    ],
+  },
+  {
+    name: 'hourly-health-check',
+    namespace: 'production',
+    schedule: '0 * * * *',
+    concurrencyPolicy: 'Replace',
+    suspend: false,
+    maxRetainedTasks: 24,
+    active: 1,
+    lastScheduleTime: '2026-04-02T08:00:00Z',
+    lastSuccessfulTime: '2026-04-02T07:05:00Z',
+    nextScheduleTime: '2026-04-02T09:00:00Z',
+    totalExecutions: 342,
+    taskTemplate: {
+      description: 'Check all production services for health issues. Alert on-call if critical problems found.',
+      agentRef: { name: 'prod-agent' },
+    },
+    createdAt: '2026-03-01T00:00:00Z',
+    labels: { team: 'sre', env: 'production', priority: 'high' },
+    conditions: [
+      { type: 'Ready', status: 'True', reason: 'Scheduled', message: 'Task created successfully' },
+    ],
+  },
+  {
+    name: 'nightly-test-suite',
+    namespace: 'staging',
+    schedule: '0 2 * * *',
+    timeZone: 'America/New_York',
+    concurrencyPolicy: 'Forbid',
+    suspend: false,
+    maxRetainedTasks: 7,
+    active: 0,
+    lastScheduleTime: '2026-04-02T06:00:00Z',
+    lastSuccessfulTime: '2026-04-02T06:30:00Z',
+    nextScheduleTime: '2026-04-03T06:00:00Z',
+    totalExecutions: 28,
+    taskTemplate: {
+      description: 'Run full integration test suite against staging environment. Report failures via Slack.',
+      agentRef: { name: 'deploy-agent' },
+    },
+    createdAt: '2026-03-05T00:00:00Z',
+    labels: { env: 'staging', type: 'testing' },
+    conditions: [
+      { type: 'Ready', status: 'True', reason: 'Scheduled', message: 'Waiting for next schedule' },
+    ],
+  },
+  {
+    name: 'monthly-dep-update',
+    namespace: 'default',
+    schedule: '0 10 1 * *',
+    concurrencyPolicy: 'Forbid',
+    suspend: false,
+    maxRetainedTasks: 3,
+    startingDeadlineSeconds: 3600,
+    active: 0,
+    lastScheduleTime: '2026-04-01T10:00:00Z',
+    lastSuccessfulTime: '2026-04-01T10:25:00Z',
+    nextScheduleTime: '2026-05-01T10:00:00Z',
+    totalExecutions: 3,
+    taskTemplate: {
+      description: 'Update all dependencies to latest versions. Run tests and create a PR if everything passes.',
+      templateRef: { name: 'standard-base' },
+    },
+    createdAt: '2026-01-01T00:00:00Z',
+    labels: { team: 'platform', type: 'maintenance' },
+    conditions: [
+      { type: 'Ready', status: 'True', reason: 'Scheduled', message: 'Waiting for next schedule' },
+    ],
+  },
+  {
+    name: 'ci-cleanup',
+    namespace: 'platform',
+    schedule: '*/30 * * * *',
+    concurrencyPolicy: 'Allow',
+    suspend: false,
+    maxRetainedTasks: 10,
+    active: 0,
+    lastScheduleTime: '2026-04-02T08:30:00Z',
+    lastSuccessfulTime: '2026-04-02T08:32:00Z',
+    nextScheduleTime: '2026-04-02T09:00:00Z',
+    totalExecutions: 156,
+    taskTemplate: {
+      description: 'Clean up stale CI artifacts and expired container images from registry.',
+      agentRef: { name: 'platform-agent' },
+    },
+    createdAt: '2026-02-15T00:00:00Z',
+    labels: { team: 'platform', type: 'cleanup' },
+    conditions: [
+      { type: 'Ready', status: 'True', reason: 'Scheduled', message: 'Waiting for next schedule' },
+    ],
+  },
+];
+
+// Mock child Tasks for CronTask history
+export const mockCronTaskHistory: Task[] = [
+  {
+    name: 'daily-vuln-scan-1711958400',
+    namespace: 'default',
+    phase: 'Running',
+    description: 'Scan all Go dependencies for security vulnerabilities.',
+    agentRef: { name: 'opencode-agent' },
+    podName: 'daily-vuln-scan-1711958400-pod',
+    startTime: '2026-04-02T01:00:00Z',
+    createdAt: '2026-04-02T01:00:00Z',
+    duration: '8m',
+    labels: { 'kubeopencode.io/crontask': 'daily-vuln-scan' },
+  },
+  {
+    name: 'daily-vuln-scan-1711872000',
+    namespace: 'default',
+    phase: 'Completed',
+    description: 'Scan all Go dependencies for security vulnerabilities.',
+    agentRef: { name: 'opencode-agent' },
+    podName: 'daily-vuln-scan-1711872000-pod',
+    startTime: '2026-04-01T01:00:00Z',
+    completionTime: '2026-04-01T01:12:00Z',
+    createdAt: '2026-04-01T01:00:00Z',
+    duration: '12m',
+    labels: { 'kubeopencode.io/crontask': 'daily-vuln-scan' },
+    conditions: [
+      { type: 'Ready', status: 'True', reason: 'TaskCompleted' },
+    ],
+  },
+  {
+    name: 'daily-vuln-scan-1711785600',
+    namespace: 'default',
+    phase: 'Completed',
+    description: 'Scan all Go dependencies for security vulnerabilities.',
+    agentRef: { name: 'opencode-agent' },
+    podName: 'daily-vuln-scan-1711785600-pod',
+    startTime: '2026-03-31T01:00:00Z',
+    completionTime: '2026-03-31T01:08:00Z',
+    createdAt: '2026-03-31T01:00:00Z',
+    duration: '8m',
+    labels: { 'kubeopencode.io/crontask': 'daily-vuln-scan' },
+    conditions: [
+      { type: 'Ready', status: 'True', reason: 'TaskCompleted' },
+    ],
+  },
+  {
+    name: 'daily-vuln-scan-1711699200',
+    namespace: 'default',
+    phase: 'Failed',
+    description: 'Scan all Go dependencies for security vulnerabilities.',
+    agentRef: { name: 'opencode-agent' },
+    podName: 'daily-vuln-scan-1711699200-pod',
+    startTime: '2026-03-30T01:00:00Z',
+    completionTime: '2026-03-30T01:02:00Z',
+    createdAt: '2026-03-30T01:00:00Z',
+    duration: '2m',
+    labels: { 'kubeopencode.io/crontask': 'daily-vuln-scan' },
+    conditions: [
+      { type: 'Ready', status: 'False', reason: 'TaskFailed', message: 'Agent unavailable' },
+    ],
+  },
+];
+
 export const mockConfig: ConfigResponse = {
   name: 'cluster',
   createdAt: '2026-01-01T00:00:00Z',
@@ -526,6 +728,17 @@ export const mockAgentTemplateListResponse: AgentTemplateListResponse = {
     limit: 20,
     offset: 0,
     totalCount: mockAgentTemplates.length,
+    hasMore: false,
+  },
+};
+
+export const mockCronTaskListResponse: CronTaskListResponse = {
+  cronTasks: mockCronTasks,
+  total: mockCronTasks.length,
+  pagination: {
+    limit: 20,
+    offset: 0,
+    totalCount: mockCronTasks.length,
     hasMore: false,
   },
 };

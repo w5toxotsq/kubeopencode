@@ -4,6 +4,37 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '../../test/utils';
 import YamlViewer from '../YamlViewer';
 
+// Mock CodeMirror since it requires a real DOM
+vi.mock('@uiw/react-codemirror', () => ({
+  __esModule: true,
+  default: ({ value, onChange, extensions }: { value: string; onChange?: (v: string) => void; extensions?: unknown[] }) => {
+    const isReadOnly = extensions?.some((ext: unknown) => {
+      // Check if EditorView.editable.of(false) is in extensions
+      return ext && typeof ext === 'object' && 'value' in (ext as Record<string, unknown>);
+    });
+    return isReadOnly ? (
+      <pre data-testid="codemirror-readonly">{value}</pre>
+    ) : (
+      <textarea
+        data-testid="codemirror-editor"
+        value={value}
+        onChange={(e) => onChange?.(e.target.value)}
+      />
+    );
+  },
+}));
+
+vi.mock('@codemirror/lang-yaml', () => ({
+  yaml: () => ({}),
+}));
+
+vi.mock('@codemirror/view', () => ({
+  EditorView: {
+    theme: () => ({}),
+    editable: { of: (v: boolean) => ({ value: v }) },
+  },
+}));
+
 const sampleYaml = `apiVersion: kubeopencode.io/v1alpha1
 kind: Task
 metadata:
@@ -35,17 +66,17 @@ describe('YamlViewer', () => {
 
   it('shows YAML content after expanding', async () => {
     const user = userEvent.setup();
-    const { container } = renderWithProviders(
+    renderWithProviders(
       <YamlViewer queryKey={['test']} fetchYaml={() => Promise.resolve(sampleYaml)} />
     );
 
     await user.click(screen.getByText('YAML'));
 
     await waitFor(() => {
-      const pre = container.querySelector('pre');
+      const pre = screen.getByTestId('codemirror-readonly');
       expect(pre).toBeInTheDocument();
-      expect(pre!.textContent).toContain('apiVersion: kubeopencode.io/v1alpha1');
-      expect(pre!.textContent).toContain('kind: Task');
+      expect(pre.textContent).toContain('apiVersion: kubeopencode.io/v1alpha1');
+      expect(pre.textContent).toContain('kind: Task');
     });
   });
 
@@ -107,5 +138,44 @@ describe('YamlViewer', () => {
     // Collapse
     await user.click(screen.getByText('YAML'));
     expect(screen.queryByText('Resource Definition')).not.toBeInTheDocument();
+  });
+
+  it('shows Edit button when onSave is provided', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <YamlViewer
+        queryKey={['test']}
+        fetchYaml={() => Promise.resolve(sampleYaml)}
+        onSave={async () => {}}
+      />
+    );
+
+    await user.click(screen.getByText('YAML'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Edit')).toBeInTheDocument();
+    });
+  });
+
+  it('shows Format button in edit mode', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <YamlViewer
+        queryKey={['test']}
+        fetchYaml={() => Promise.resolve(sampleYaml)}
+        onSave={async () => {}}
+      />
+    );
+
+    await user.click(screen.getByText('YAML'));
+    await waitFor(() => {
+      expect(screen.getByText('Edit')).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByText('Edit'));
+
+    expect(screen.getByText('Format')).toBeInTheDocument();
+    expect(screen.getByText('Save')).toBeInTheDocument();
+    expect(screen.getByText('Cancel')).toBeInTheDocument();
   });
 });

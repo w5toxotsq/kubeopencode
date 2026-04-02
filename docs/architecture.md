@@ -54,6 +54,7 @@ See the [kubeopencode/dogfooding](https://github.com/kubeopencode/dogfooding) re
 | Resource | Purpose | Stability |
 |----------|---------|-----------|
 | **Task** | Single task execution (primary API) | Stable - semantic name |
+| **CronTask** | Scheduled/recurring task execution | Stable - creates Tasks on cron schedule |
 | **Agent** | Running AI agent instance (Deployment + Service) | Stable - independent of project name |
 | **AgentTemplate** | Reusable blueprint for Agents and ephemeral Tasks | Stable - configuration inheritance |
 | **KubeOpenCodeConfig** | Cluster-scoped system-level configuration | Stable - system settings |
@@ -646,6 +647,45 @@ When this annotation is detected:
 - Kubernetes sends SIGTERM to all running Pods, triggering graceful shutdown
 - Pod is deleted after termination (logs are not preserved)
 - Task status is set to `Completed` with a `Stopped` condition
+
+---
+
+## CronTask (Scheduled Execution)
+
+CronTask creates Tasks on a cron schedule, analogous to Kubernetes CronJob creating Jobs.
+
+### CronTaskSpec Fields
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| `schedule` | string | Yes | - | Cron expression (5-field: minute hour day-of-month month day-of-week) |
+| `timeZone` | *string | No | UTC | IANA timezone for schedule |
+| `concurrencyPolicy` | string | No | Forbid | How to handle concurrent executions: Allow, Forbid, Replace |
+| `suspend` | *bool | No | false | Pause scheduling (existing Tasks are not affected) |
+| `startingDeadlineSeconds` | *int64 | No | nil | Grace period for missed schedules |
+| `maxRetainedTasks` | *int32 | No | 10 | Max child Tasks (blocks creation when reached) |
+| `taskTemplate` | TaskTemplateSpec | Yes | - | Template for created Tasks |
+
+### CronTaskStatus Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `active` | int32 | Number of active (Running/Pending/Queued) child Tasks |
+| `activeRefs` | []ObjectReference | References to active Tasks |
+| `lastScheduleTime` | *Time | Last time a Task was created |
+| `lastSuccessfulTime` | *Time | Last time a Task completed successfully |
+| `nextScheduleTime` | *Time | Next calculated schedule time |
+| `totalExecutions` | int64 | Total Tasks created since CronTask creation |
+| `conditions` | []Condition | Ready condition |
+
+### Design Decisions
+
+- **ConcurrencyPolicy defaults to Forbid**: AI tasks are resource-intensive; concurrent execution is risky
+- **maxRetainedTasks blocks, does NOT delete**: CronTask creates, global cleanup deletes (separation of concerns)
+- **Manual trigger**: Both annotation (`kubeopencode.io/trigger=true`) and API endpoint
+- **No standby interaction needed**: Task Controller already handles resuming suspended Agents
+
+> See [ADR 0025](adr/0025-crontask.md) for full design rationale.
 
 ---
 

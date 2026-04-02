@@ -32,6 +32,14 @@ Verify the cluster is running:
 kubectl cluster-info
 ```
 
+**IMPORTANT:** Local-dev MUST use the `kubeopencode` Kind cluster, NOT `kubeopencode-e2e` (which is reserved for E2E tests). Always verify your current context before running any commands:
+
+```bash
+# Verify current context points to the kubeopencode cluster
+kubectl config current-context
+# Expected: kind-kubeopencode (NOT kind-kubeopencode-e2e)
+```
+
 **Note:** The examples below use `--name kubeopencode` for Kind commands. If using an existing cluster with a different name (e.g., `kind`), replace `--name kubeopencode` with your cluster name.
 
 ### 2. Build Images

@@ -524,6 +524,91 @@ When this annotation is detected:
 
 **Note:** Logs are lost when a Task is stopped. For log persistence, use an external log aggregation system.
 
+## CronTask (Scheduled Execution)
+
+CronTask provides scheduled/recurring task execution — analogous to Kubernetes CronJob creating Jobs, CronTask creates Tasks on a cron schedule.
+
+### Basic Usage
+
+```yaml
+apiVersion: kubeopencode.io/v1alpha1
+kind: CronTask
+metadata:
+  name: daily-vuln-scan
+spec:
+  schedule: "0 9 * * 1-5"           # Every weekday at 09:00
+  timeZone: "Asia/Shanghai"          # IANA timezone (default: UTC)
+  concurrencyPolicy: Forbid          # Skip if previous is still running
+  maxRetainedTasks: 10               # Max child Tasks (blocks creation when reached)
+  taskTemplate:
+    spec:
+      agentRef:
+        name: security-agent
+      description: |
+        Scan all Go dependencies for CVEs.
+        If critical/high found, create a PR with the fix.
+```
+
+### Concurrency Policy
+
+Controls behavior when a new schedule fires while a previous Task is still running:
+
+| Policy | Behavior |
+|--------|----------|
+| **Forbid** (default) | Skip the new Task creation |
+| **Allow** | Create new Task regardless |
+| **Replace** | Stop the running Task, create new |
+
+### maxRetainedTasks
+
+Safety valve that counts ALL child Tasks (active + finished). When the limit is reached, the controller **blocks new Task creation** (does NOT delete old Tasks). Deletion is handled by the global `KubeOpenCodeConfig.cleanup` mechanism.
+
+This clean separation ensures:
+- CronTask is responsible for **creating** Tasks (with a cap)
+- Global cleanup is responsible for **deleting** Tasks
+
+### Manual Trigger
+
+Trigger a CronTask to create a Task immediately:
+
+```bash
+# Via annotation (kubectl)
+kubectl annotate crontask daily-vuln-scan kubeopencode.io/trigger=true
+
+# Via API (UI uses this)
+POST /api/v1/namespaces/{ns}/crontasks/{name}/trigger
+```
+
+### Suspend/Resume
+
+```bash
+# Suspend (stop creating new Tasks, existing ones continue)
+kubectl patch crontask daily-vuln-scan --type merge -p '{"spec":{"suspend":true}}'
+
+# Resume
+kubectl patch crontask daily-vuln-scan --type merge -p '{"spec":{"suspend":false}}'
+```
+
+### Generated Task Naming
+
+Tasks created by CronTask follow the pattern: `{crontask-name}-{unix-timestamp}`
+
+Each generated Task includes:
+- Label: `kubeopencode.io/crontask={crontask-name}`
+- OwnerReference pointing to the CronTask (for garbage collection)
+
+### CronTask Spec Reference
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `schedule` | string | (required) | Cron expression (5-field: min hour dom month dow) |
+| `timeZone` | string | UTC | IANA timezone |
+| `concurrencyPolicy` | string | Forbid | Allow, Forbid, or Replace |
+| `suspend` | bool | false | Pause scheduling |
+| `startingDeadlineSeconds` | int64 | nil | Grace period for missed schedules |
+| `maxRetainedTasks` | int32 | 10 | Max child Tasks before blocking creation |
+| `taskTemplate` | object | (required) | Template for created Tasks (metadata + spec) |
+
 ## Agent Templates
 
 AgentTemplate serves two purposes:

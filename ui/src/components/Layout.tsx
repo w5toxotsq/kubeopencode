@@ -104,6 +104,24 @@ function Layout() {
         </NavLink>
 
         <NavLink
+          to="/crontasks"
+          className={({ isActive }) =>
+            `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
+              isActive || location.pathname.startsWith('/crontasks/')
+                ? 'bg-primary-50 text-primary-700 font-medium'
+                : 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
+            }`
+          }
+          onClick={() => setMobileSidebarOpen(false)}
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span className="flex-1">CronTasks</span>
+        </NavLink>
+
+        <NavLink
           to="/agents"
           className={({ isActive }) =>
             `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
@@ -144,7 +162,7 @@ function Layout() {
             <rect x="3" y="14" width="7" height="7" rx="1" />
             <rect x="14" y="14" width="7" height="7" rx="1" />
           </svg>
-          <span className="flex-1">Templates</span>
+          <span className="flex-1">AgentTemplates</span>
         </NavLink>
       </div>
 
@@ -253,6 +271,20 @@ function Layout() {
               </svg>
             </NavLink>
             <NavLink
+              to="/crontasks"
+              className={({ isActive }) =>
+                `w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
+                  isActive ? 'text-primary-700 bg-primary-50' : 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
+                }`
+              }
+              title="CronTasks"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+            </NavLink>
+            <NavLink
               to="/agents"
               className={({ isActive }) =>
                 `w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${
@@ -279,7 +311,7 @@ function Layout() {
                   isActive ? 'text-primary-700 bg-primary-50' : 'text-sidebar-muted hover:text-sidebar-text hover:bg-sidebar-hover'
                 }`
               }
-              title="Templates"
+              title="AgentTemplates"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7" rx="1" />

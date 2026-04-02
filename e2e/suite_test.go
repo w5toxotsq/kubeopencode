@@ -69,6 +69,7 @@ const (
 	LabelAgent    = "agent"
 	LabelServer   = "server"
 	LabelOpenCode = "opencode" // Tests using real OpenCode with free models
+	LabelCronTask = "crontask"
 
 	// Extended timeout for Deployment readiness tests
 	serverTimeout = time.Minute * 10
@@ -195,6 +196,14 @@ var _ = AfterSuite(func() {
 	if err := k8sClient.List(ctx, agents, client.InNamespace(testNS)); err == nil {
 		for _, a := range agents.Items {
 			_ = k8sClient.Delete(ctx, &a)
+		}
+	}
+
+	// Delete all CronTasks in test namespace
+	cronTasks := &kubeopenv1alpha1.CronTaskList{}
+	if err := k8sClient.List(ctx, cronTasks, client.InNamespace(testNS)); err == nil {
+		for _, ct := range cronTasks.Items {
+			_ = k8sClient.Delete(ctx, &ct)
 		}
 	}
 
