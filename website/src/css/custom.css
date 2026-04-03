@@ -3,6 +3,10 @@
  * Uses a blue-tinted palette inspired by Kubernetes branding.
  */
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --ifm-color-primary: #326ce5;
   --ifm-color-primary-dark: #2359d4;

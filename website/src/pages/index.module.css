@@ -1,3 +1,4 @@
+/* Alpha banner */
 .alphaBanner {
   background: #e8a838;
   color: #1a1a1a;
@@ -6,46 +7,62 @@
   font-size: 0.9rem;
 }
 
+/* Hero section */
 .heroBanner {
-  padding: 4rem 0;
+  padding: 6rem 0 4rem;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+.heroTitle {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+}
+
+.heroTagline {
+  font-size: 1.4rem;
+  opacity: 0.95;
+  margin-bottom: 1rem;
 }
 
 .heroDescription {
-  font-size: 1.2rem;
-  max-width: 600px;
+  font-size: 1.15rem;
+  max-width: 640px;
   margin: 0 auto 2rem;
-  opacity: 0.9;
+  opacity: 0.85;
+  line-height: 1.6;
 }
 
-.buttons {
+.heroLink {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.heroLink:hover {
+  opacity: 0.8;
+}
+
+.heroActions {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2.5rem;
 }
 
-.quickExample {
-  padding: 4rem 0;
-  background: var(--ifm-background-surface-color);
+.installSnippet {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: left;
 }
 
-.quickExample ul {
-  margin-top: 1rem;
-  line-height: 2;
-}
-
+/* Star badge */
 .starBadge {
   display: inline-flex;
   align-items: stretch;
-  margin-left: 1rem;
   border-radius: 6px;
   overflow: hidden;
   font-size: 0.95rem;
@@ -76,4 +93,395 @@
   background: rgba(255, 255, 255, 0.2);
   border-left: 1px solid rgba(255, 255, 255, 0.3);
   font-variant-numeric: tabular-nums;
+}
+
+/* Shared section styles */
+.section {
+  padding: 5rem 0;
+}
+
+.sectionAlt {
+  background: var(--ifm-background-surface-color);
+}
+
+.sectionHeader {
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.sectionHeader h2 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.sectionSubtitle {
+  font-size: 1.15rem;
+  color: var(--ifm-color-emphasis-600);
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Demo section */
+.demoPlaceholder {
+  max-width: 800px;
+  margin: 0 auto;
+  border: 2px dashed var(--ifm-color-emphasis-300);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.demoPlaceholderInner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 360px;
+  background: var(--ifm-background-surface-color);
+}
+
+.demoPlayIcon {
+  color: var(--ifm-color-emphasis-400);
+  margin-bottom: 1rem;
+}
+
+.demoPlaceholderText {
+  font-size: 1.1rem;
+  color: var(--ifm-color-emphasis-500);
+  margin: 0;
+}
+
+/* Features section */
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.featureCard {
+  background: var(--ifm-background-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 12px;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.featureCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] .featureCard:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.featureIconArea {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  margin-bottom: 1.25rem;
+}
+
+.featureIcon {
+  font-size: 2rem;
+  line-height: 1;
+  filter: grayscale(0);
+}
+
+.featureTitle {
+  font-size: 1.15rem;
+  margin-bottom: 0.75rem;
+}
+
+.featureDescription {
+  font-size: 0.95rem;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* How It Works section */
+.stepsContainer {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 48px 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.stepNumber {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--ifm-color-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.stepContent h3 {
+  margin-top: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.stepList {
+  margin-top: 1rem;
+  line-height: 2;
+}
+
+.stepCode {
+  margin-top: 0;
+}
+
+/* Architecture section */
+.archFlow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+}
+
+.archNode {
+  text-align: center;
+  padding: 1.5rem 2rem;
+  background: var(--ifm-background-color);
+  border: 2px solid var(--ifm-color-primary);
+  border-radius: 12px;
+  min-width: 160px;
+  transition: transform 0.2s ease;
+}
+
+.archNode:hover {
+  transform: translateY(-2px);
+}
+
+.archNode h4 {
+  margin: 0.75rem 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.archNode p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-600);
+}
+
+.archNodeIcon {
+  color: var(--ifm-color-primary);
+}
+
+.archArrow {
+  color: var(--ifm-color-emphasis-400);
+  flex-shrink: 0;
+}
+
+.archDetails {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.archDetail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.archDetail strong {
+  font-size: 1rem;
+}
+
+.archDetail span {
+  font-size: 0.9rem;
+  color: var(--ifm-color-emphasis-600);
+  line-height: 1.5;
+}
+
+/* FAQ section */
+.faqList {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.faqItem {
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.faqQuestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 1.25rem 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ifm-font-color-base);
+  text-align: left;
+  gap: 1rem;
+}
+
+.faqQuestion:hover {
+  color: var(--ifm-color-primary);
+}
+
+.faqChevron {
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.faqItemOpen .faqChevron {
+  transform: rotate(180deg);
+}
+
+.faqAnswer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.faqItemOpen .faqAnswer {
+  max-height: 300px;
+  padding-bottom: 1.25rem;
+}
+
+.faqAnswer p {
+  margin: 0;
+  color: var(--ifm-color-emphasis-700);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+
+/* CTA section */
+.ctaSection {
+  background: var(--ifm-color-primary);
+  color: white;
+}
+
+.ctaContent {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  color: white;
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.ctaDescription {
+  font-size: 1.15rem;
+  opacity: 0.9;
+  margin-bottom: 2rem;
+}
+
+.ctaActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.ctaActions .button--outline {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.ctaActions .button--outline:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: white;
+}
+
+/* Responsive */
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 3rem 1.5rem;
+  }
+
+  .heroTitle {
+    font-size: 2.5rem;
+  }
+
+  .featuresGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .step {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .stepNumber {
+    margin-bottom: 0;
+  }
+
+  .archFlow {
+    flex-direction: column;
+  }
+
+  .archArrow {
+    transform: rotate(90deg);
+  }
+
+  .archDetails {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .heroTitle {
+    font-size: 2rem;
+  }
+
+  .heroTagline {
+    font-size: 1.1rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  .sectionHeader h2 {
+    font-size: 1.75rem;
+  }
+
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroActions {
+    flex-direction: column;
+  }
+
+  .ctaActions {
+    flex-direction: column;
+  }
 }
