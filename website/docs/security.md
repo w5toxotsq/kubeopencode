@@ -240,7 +240,7 @@ KubeOpenCode applies a restricted security context by default to all agent conta
 
 These defaults align with the Kubernetes [Restricted Pod Security Standard](https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted) and are suitable for most workloads.
 
-You can override these defaults or add stricter settings using `podSpec.securityContext` (container-level) and `podSpec.podSecurityContext` (pod-level). See [Features - Enterprise Features](features.md#enterprise-features) for an overview.
+You can override these defaults or add stricter settings using `podSpec.securityContext` (container-level) and `podSpec.podSecurityContext` (pod-level). See [Features - Pod Security](features.md#pod-security) for details.
 
 ### Runtime Isolation
 
@@ -288,13 +288,13 @@ spec:
 
 When agent images are hosted in private registries that require authentication, configure `imagePullSecrets` on the Agent. The referenced Secrets must be of type `kubernetes.io/dockerconfigjson` and exist in the same namespace as the Agent.
 
-See [Features - Enterprise Features](features.md#enterprise-features) for an overview.
+See [Features - Private Registry Authentication](features.md#private-registry-authentication) for configuration examples.
 
 ## Network Proxy Configuration
 
 Enterprise environments often require outbound traffic to pass through a corporate proxy. KubeOpenCode supports proxy configuration at both the Agent level and the cluster level via `KubeOpenCodeConfig`. Agent-level settings override cluster-level settings.
 
-See [Features - Enterprise Features](features.md#enterprise-features) for an overview.
+See [Features - HTTP/HTTPS Proxy Configuration](features.md#httphttps-proxy-configuration) for configuration examples.
 
 ## Best Practices
 

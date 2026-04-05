@@ -59,7 +59,7 @@ We maintain information about each engineer — their name, GitHub username, ema
 
 ### 5. Scheduled Workflows
 
-An agent that only works when you talk to it is useful, but an agent that works on a schedule — without being asked — is where things get interesting. We use [KubeOpenCode](https://kubeopencode.io), a Kubernetes-native platform for running AI agents, to deploy our agent with CronJob-based scheduled workflows.
+An agent that only works when you talk to it is useful, but an agent that works on a schedule — without being asked — is where things get interesting. We use [KubeOpenCode](https://kubeopencode.github.io/kubeopencode/), a Kubernetes-native platform for running AI agents, to deploy our agent with [CronTask](/docs/features#crontask-scheduled-execution)-based scheduled workflows.
 
 Here are some examples:
 
@@ -80,14 +80,14 @@ This turns the agent from a batch processor into a team member that's always ava
 
 ## Deploying the Agent
 
-We deploy the agent on Kubernetes using KubeOpenCode. The deployment includes:
+We deploy the agent on Kubernetes using KubeOpenCode. Our agent repo — [kubeopencode-agent](https://github.com/kubeopencode/kubeopencode-agent) — is a living example of this pattern. It contains the agent's identity, cross-repo context, team knowledge, skills, and workflow definitions. The deployment includes:
 
-- An `AgentTemplate` that defines the agent's base configuration — which AI model to use, what tools are available, and how the repo is synced
-- `CronTask` resources that schedule each workflow independently
-- A Slack gateway for real-time interaction
-- Secrets management for GitHub tokens and API keys
+- An [`AgentTemplate`](/docs/features#agent-templates) that defines the agent's base configuration — which AI model to use via the [`config` field](/docs/setting-up-agent#step-1-configure-the-ai-model), and how repos are synced via [Git contexts](/docs/setting-up-agent#context)
+- [`Skills`](/docs/setting-up-agent#skills) imported from Git repositories — reusable AI capabilities defined as `SKILL.md` files
+- [`CronTask`](/docs/features#crontask-scheduled-execution) resources that schedule each workflow independently
+- [`Credentials`](/docs/setting-up-agent#providing-api-keys) for GitHub tokens and API keys, managed as Kubernetes Secrets
 
-The entire deployment is defined as Kubernetes manifests, version-controlled alongside the agent code. Infrastructure as code, but for your AI agent.
+The entire deployment is defined as Kubernetes manifests, version-controlled alongside the agent code. Infrastructure as code, but for your AI agent. See [Setting Up an Agent](/docs/setting-up-agent) for a step-by-step guide.
 
 ## Known Gaps
 

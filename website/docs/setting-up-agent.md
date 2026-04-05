@@ -287,10 +287,9 @@ spec:
     - name: coding-standards
       description: "Team coding guidelines"
       type: Text
-      text:
-        content: |
-          Always use TypeScript strict mode.
-          Follow the repository's existing patterns.
+      text: |
+        Always use TypeScript strict mode.
+        Follow the repository's existing patterns.
 
     # Reference a ConfigMap
     - name: project-config
@@ -499,12 +498,18 @@ metadata:
 spec:
   agentRef:
     name: team-agent
-  instruction: "Fix the login timeout bug in src/auth/handler.go"
+  description: "Fix the login timeout bug in src/auth/handler.go"
 EOF
 
 # Watch progress
 kubectl get task -n my-team -w
 ```
+
+## Further Reading: Repo-as-Agent Pattern
+
+The KubeOpenCode team's own agent — [kubeopencode-agent](https://github.com/kubeopencode/kubeopencode-agent) — follows the **Repo-as-Agent** pattern: a dedicated Git repository that *is* the agent, containing its identity, cross-repo context, team knowledge, skills, and scheduled workflows. The Agent you configure with KubeOpenCode is designed to work this way.
+
+Read more about this pattern and how we built it: [Whatever You Want to Build, Build an Agent First](/blog/repo-as-agent).
 
 ## Next Steps
 
