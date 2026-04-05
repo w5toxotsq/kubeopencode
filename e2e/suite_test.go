@@ -38,6 +38,12 @@ var (
 	testNS    string
 	echoImage string
 
+	// agentImage is the OpenCode init container image used to copy the opencode
+	// binary to /tools. All E2E Agent/AgentTemplate specs must set AgentImage
+	// to this value to avoid the controller falling back to DefaultAgentImage
+	// (which uses :latest and triggers PullAlways in Kind).
+	agentImage string
+
 	// OpenCode test configuration (for LabelOpenCode tests)
 	opencodeImage string // OpenCode agent image (init container)
 )
@@ -52,11 +58,14 @@ const (
 	// Default test namespace
 	defaultTestNS = "kubeopencode-e2e-test"
 
-	// Default echo agent image
-	defaultEchoImage = "quay.io/kubeopencode/kubeopencode-agent-echo:latest"
+	// Default echo agent image (uses :dev tag to get IfNotPresent pull policy in Kind)
+	defaultEchoImage = "quay.io/kubeopencode/kubeopencode-agent-echo:dev"
+
+	// Default OpenCode agent image / init container (uses :dev tag to get IfNotPresent pull policy in Kind)
+	defaultAgentImage = "quay.io/kubeopencode/kubeopencode-agent-opencode:dev"
 
 	// Default OpenCode agent image (init container that copies opencode binary)
-	defaultOpenCodeImage = "quay.io/kubeopencode/kubeopencode-agent-opencode:latest"
+	defaultOpenCodeImage = "quay.io/kubeopencode/kubeopencode-agent-opencode:dev"
 
 	// Test ServiceAccount name for e2e tests
 	testServiceAccount = "kubeopencode-e2e-agent"
@@ -97,6 +106,12 @@ var _ = BeforeSuite(func() {
 	echoImage = os.Getenv("E2E_ECHO_IMAGE")
 	if echoImage == "" {
 		echoImage = defaultEchoImage
+	}
+
+	// Get agent image (init container) from env or use default
+	agentImage = os.Getenv("E2E_AGENT_IMAGE")
+	if agentImage == "" {
+		agentImage = defaultAgentImage
 	}
 
 	By("Connecting to Kubernetes cluster")
@@ -177,7 +192,7 @@ var _ = BeforeSuite(func() {
 		opencodeImage = defaultOpenCodeImage
 	}
 
-	GinkgoWriter.Printf("E2E test setup complete. Namespace: %s, Echo Image: %s, OpenCode Image: %s\n", testNS, echoImage, opencodeImage)
+	GinkgoWriter.Printf("E2E test setup complete. Namespace: %s, Echo Image: %s, Agent Image: %s, OpenCode Image: %s\n", testNS, echoImage, agentImage, opencodeImage)
 })
 
 var _ = AfterSuite(func() {

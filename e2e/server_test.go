@@ -30,6 +30,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -106,6 +107,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -159,6 +161,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -233,6 +236,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -327,6 +331,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					AttachImage:        echoImage, // Use echo image as attach image for testing
 					ServiceAccountName: testServiceAccount,
@@ -401,6 +406,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -458,6 +464,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -502,6 +509,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -572,6 +580,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					AttachImage:        echoImage,
 					ServiceAccountName: testServiceAccount,
@@ -637,6 +646,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -716,6 +726,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -754,6 +765,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -821,6 +833,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -906,6 +919,7 @@ var _ = Describe("Agent Deployment E2E Tests", Label(LabelServer), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",

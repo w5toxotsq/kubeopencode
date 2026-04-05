@@ -36,6 +36,7 @@ var _ = Describe("Task E2E Tests", Label(LabelTask), func() {
 				Namespace: testNS,
 			},
 			Spec: kubeopenv1alpha1.AgentSpec{
+				AgentImage:         agentImage,
 				ExecutorImage:      echoImage,
 				ServiceAccountName: testServiceAccount,
 				WorkspaceDir:       "/workspace",
@@ -265,6 +266,7 @@ var _ = Describe("Task E2E Tests", Label(LabelTask), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -449,6 +451,7 @@ var _ = Describe("Task E2E Tests", Label(LabelTask), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -536,6 +539,7 @@ var _ = Describe("Task E2E Tests", Label(LabelTask), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
@@ -1029,6 +1033,7 @@ var _ = Describe("Task E2E Tests", Label(LabelTask), func() {
 					Namespace: testNS,
 				},
 				Spec: kubeopenv1alpha1.AgentSpec{
+					AgentImage:         agentImage,
 					ExecutorImage:      echoImage,
 					ServiceAccountName: testServiceAccount,
 					WorkspaceDir:       "/workspace",
