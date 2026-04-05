@@ -13,6 +13,7 @@ function LogViewer({ namespace, taskName, podName, isRunning }: LogViewerProps) 
   const [status, setStatus] = useState<string>('Connecting...');
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const hasConnectedRef = useRef(false);
   const [autoScroll, setAutoScroll] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearch, setShowSearch] = useState(false);
@@ -30,6 +31,7 @@ function LogViewer({ namespace, taskName, podName, isRunning }: LogViewerProps) 
     if (eventSourceRef.current) {
       eventSourceRef.current.close();
     }
+    hasConnectedRef.current = false;
 
     const url = api.getTaskLogsUrl(namespace, taskName);
     const eventSource = new EventSource(url);
@@ -37,6 +39,7 @@ function LogViewer({ namespace, taskName, podName, isRunning }: LogViewerProps) 
 
     eventSource.onopen = () => {
       setIsConnected(true);
+      hasConnectedRef.current = true;
       setError(null);
       setStatus('Connected');
     };
@@ -74,7 +77,11 @@ function LogViewer({ namespace, taskName, podName, isRunning }: LogViewerProps) 
     eventSource.onerror = () => {
       setIsConnected(false);
       if (isRunning) {
-        setStatus('Connection lost, reconnecting...');
+        if (hasConnectedRef.current) {
+          setStatus('Connection lost, reconnecting...');
+        } else {
+          setStatus('Waiting for log stream...');
+        }
       } else {
         setStatus('Stream ended');
         eventSource.close();

@@ -161,7 +161,7 @@ describe('LogViewer', () => {
     expect(es.close).toHaveBeenCalled();
   });
 
-  it('shows reconnecting message on connection error when running', () => {
+  it('shows reconnecting message on connection error after successful connection', () => {
     render(<LogViewer {...defaultProps} isRunning={true} />);
     const es = MockEventSource.instances[0];
 
@@ -171,6 +171,18 @@ describe('LogViewer', () => {
     });
 
     expect(screen.getByText('Connection lost, reconnecting...')).toBeInTheDocument();
+  });
+
+  it('shows waiting message on initial connection error before ever connecting', () => {
+    render(<LogViewer {...defaultProps} isRunning={true} />);
+    const es = MockEventSource.instances[0];
+
+    act(() => {
+      es.simulateError();
+    });
+
+    expect(screen.getByText('Waiting for log stream...')).toBeInTheDocument();
+    expect(screen.queryByText('Connection lost, reconnecting...')).not.toBeInTheDocument();
   });
 
   it('shows stream ended message on error when not running', () => {
