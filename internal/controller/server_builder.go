@@ -381,15 +381,30 @@ func BuildServerDeployment(agent *kubeopenv1alpha1.Agent, agentCfg agentConfig, 
 		initContainers = append(initContainers, gitInitContainer)
 
 		if !isWorkspaceRoot {
-			subPath := DefaultGitLink
+			baseSubPath := DefaultGitLink
 			if gm.repoPath != "" {
-				subPath = DefaultGitLink + "/" + strings.TrimPrefix(gm.repoPath, "/")
+				baseSubPath = DefaultGitLink + "/" + strings.TrimPrefix(gm.repoPath, "/")
 			}
-			volumeMounts = append(volumeMounts, corev1.VolumeMount{
-				Name:      volumeName,
-				MountPath: gm.mountPath,
-				SubPath:   subPath,
-			})
+
+			if len(gm.names) > 0 {
+				// When specific names are set, mount only the named subdirectories
+				// instead of the entire directory. This prevents agents from
+				// discovering unselected skills in the repository.
+				cleanBase := filepath.Clean(baseSubPath)
+				for _, name := range gm.names {
+					volumeMounts = append(volumeMounts, corev1.VolumeMount{
+						Name:      volumeName,
+						MountPath: filepath.Join(gm.mountPath, name),
+						SubPath:   filepath.Join(cleanBase, name),
+					})
+				}
+			} else {
+				volumeMounts = append(volumeMounts, corev1.VolumeMount{
+					Name:      volumeName,
+					MountPath: gm.mountPath,
+					SubPath:   baseSubPath,
+				})
+			}
 		}
 	}
 

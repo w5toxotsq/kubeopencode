@@ -2274,12 +2274,17 @@ spec:
                             Names selects specific skill directories under Path.
                             Each name corresponds to a skill folder name containing SKILL.md.
                             If omitted, ALL skills found under Path are included.
+                            Each name must be a simple directory name (no path separators or ".." allowed).
 
                             Example: ["frontend-design", "webapp-testing"] selects only those two skills
                             from the repository, ignoring all others.
                           items:
+                            maxLength: 253
+                            minLength: 1
+                            pattern: ^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$
                             type: string
                           type: array
+                          x-kubernetes-list-type: set
                         path:
                           description: |-
                             Path is the base directory within the repository where skills are located.

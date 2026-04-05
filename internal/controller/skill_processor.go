@@ -56,6 +56,7 @@ func processSkills(skills []kubeopenv1alpha1.SkillSource) ([]gitMount, []string)
 			depth:             depth,
 			secretName:        secretName,
 			recurseSubmodules: git.RecurseSubmodules,
+			names:             git.Names,
 		}
 		gitMounts = append(gitMounts, gm)
 

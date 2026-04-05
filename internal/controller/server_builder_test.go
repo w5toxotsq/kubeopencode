@@ -1632,3 +1632,125 @@ func TestBuildServerDeployment_ContextHashAnnotation(t *testing.T) {
 		t.Error("context hash should differ when ConfigMap content changes")
 	}
 }
+
+func TestBuildServerDeployment_SkillNamesPerNameMount(t *testing.T) {
+	agent := &kubeopenv1alpha1.Agent{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test-agent",
+			Namespace: "default",
+		},
+		Spec: kubeopenv1alpha1.AgentSpec{
+			Port: 4096,
+		},
+	}
+
+	cfg := agentConfig{
+		executorImage: "test-executor:v1",
+		agentImage:    "test-agent:v1",
+		workspaceDir:  "/workspace",
+	}
+
+	t.Run("names creates per-name SubPath mounts", func(t *testing.T) {
+		gitMounts := []gitMount{
+			{
+				contextName: "skill-official",
+				repository:  "https://github.com/anthropics/skills.git",
+				ref:         "main",
+				repoPath:    "skills/",
+				mountPath:   "/skills/official",
+				depth:       1,
+				names:       []string{"frontend-design", "webapp-testing"},
+			},
+		}
+
+		deployment := BuildServerDeployment(agent, cfg, defaultSystemConfig(), nil, nil, nil, gitMounts, nil)
+		container := deployment.Spec.Template.Spec.Containers[0]
+
+		// Should NOT have a mount for the whole /skills/official directory
+		for _, vm := range container.VolumeMounts {
+			if vm.MountPath == "/skills/official" {
+				t.Error("should not mount the entire /skills/official directory when names are specified")
+			}
+		}
+
+		// Should have per-name mounts
+		expectedMounts := map[string]string{
+			"/skills/official/frontend-design": "repo/skills/frontend-design",
+			"/skills/official/webapp-testing":  "repo/skills/webapp-testing",
+		}
+		for expectedPath, expectedSubPath := range expectedMounts {
+			found := false
+			for _, vm := range container.VolumeMounts {
+				if vm.MountPath == expectedPath {
+					found = true
+					if vm.SubPath != expectedSubPath {
+						t.Errorf("mount %q SubPath = %q, want %q", expectedPath, vm.SubPath, expectedSubPath)
+					}
+				}
+			}
+			if !found {
+				t.Errorf("expected volume mount at %q not found", expectedPath)
+			}
+		}
+	})
+
+	t.Run("empty names mounts whole directory", func(t *testing.T) {
+		gitMounts := []gitMount{
+			{
+				contextName: "skill-all",
+				repository:  "https://github.com/org/skills.git",
+				ref:         "main",
+				repoPath:    "skills/",
+				mountPath:   "/skills/all",
+				depth:       1,
+				names:       nil,
+			},
+		}
+
+		deployment := BuildServerDeployment(agent, cfg, defaultSystemConfig(), nil, nil, nil, gitMounts, nil)
+		container := deployment.Spec.Template.Spec.Containers[0]
+
+		found := false
+		for _, vm := range container.VolumeMounts {
+			if vm.MountPath == "/skills/all" {
+				found = true
+				if vm.SubPath != "repo/skills/" {
+					t.Errorf("SubPath = %q, want %q", vm.SubPath, "repo/skills/")
+				}
+			}
+		}
+		if !found {
+			t.Error("expected volume mount at /skills/all not found")
+		}
+	})
+
+	t.Run("names with empty repoPath", func(t *testing.T) {
+		gitMounts := []gitMount{
+			{
+				contextName: "skill-root",
+				repository:  "https://github.com/org/skills.git",
+				ref:         "main",
+				repoPath:    "",
+				mountPath:   "/skills/root",
+				depth:       1,
+				names:       []string{"some-skill"},
+			},
+		}
+
+		deployment := BuildServerDeployment(agent, cfg, defaultSystemConfig(), nil, nil, nil, gitMounts, nil)
+		container := deployment.Spec.Template.Spec.Containers[0]
+
+		found := false
+		for _, vm := range container.VolumeMounts {
+			if vm.MountPath == "/skills/root/some-skill" {
+				found = true
+				if vm.SubPath != "repo/some-skill" {
+					t.Errorf("SubPath = %q, want %q", vm.SubPath, "repo/some-skill")
+				}
+			}
+		}
+		if !found {
+			t.Error("expected volume mount at /skills/root/some-skill not found")
+		}
+	})
+}

@@ -85,6 +85,15 @@ func TestProcessSkills(t *testing.T) {
 			t.Fatalf("expected 1 gitMount, got %d", len(gitMounts))
 		}
 
+		// Verify names are passed through to gitMount for per-name SubPath mounting
+		gm := gitMounts[0]
+		if len(gm.names) != 2 {
+			t.Fatalf("expected 2 names on gitMount, got %d", len(gm.names))
+		}
+		if gm.names[0] != "frontend-design" || gm.names[1] != "webapp-testing" {
+			t.Errorf("names = %v, want [frontend-design webapp-testing]", gm.names)
+		}
+
 		if len(skillPaths) != 2 {
 			t.Fatalf("expected 2 skillPaths, got %d", len(skillPaths))
 		}

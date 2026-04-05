@@ -139,6 +139,11 @@ type gitMount struct {
 	secretName        string // Optional secret name for authentication
 	recurseSubmodules bool   // Whether to recursively clone submodules
 
+	// Skill filtering: when set, only these named subdirectories under repoPath
+	// should be visible at mountPath (one SubPath mount per name).
+	// Used to prevent agents from discovering unselected skills.
+	names []string
+
 	// Sync fields (only effective for Agent contexts)
 	syncEnabled  bool                           // Whether auto-sync is enabled
 	syncPolicy   kubeopenv1alpha1.GitSyncPolicy // HotReload or Rollout
@@ -1032,15 +1037,30 @@ func buildPod(task *kubeopenv1alpha1.Task, podName string, cfg agentConfig, cont
 		if !isWorkspaceRoot {
 			// Normal case: mount git volume at the specified path in agent container.
 			// If repoPath is specified, use subPath to mount only that path.
-			subPath := DefaultGitLink
+			baseSubPath := DefaultGitLink
 			if gm.repoPath != "" {
-				subPath = DefaultGitLink + "/" + strings.TrimPrefix(gm.repoPath, "/")
+				baseSubPath = DefaultGitLink + "/" + strings.TrimPrefix(gm.repoPath, "/")
 			}
-			volumeMounts = append(volumeMounts, corev1.VolumeMount{
-				Name:      volumeName,
-				MountPath: gm.mountPath,
-				SubPath:   subPath,
-			})
+
+			if len(gm.names) > 0 {
+				// When specific names are set, mount only the named subdirectories
+				// instead of the entire directory. This prevents agents from
+				// discovering unselected skills in the repository.
+				cleanBase := filepath.Clean(baseSubPath)
+				for _, name := range gm.names {
+					volumeMounts = append(volumeMounts, corev1.VolumeMount{
+						Name:      volumeName,
+						MountPath: filepath.Join(gm.mountPath, name),
+						SubPath:   filepath.Join(cleanBase, name),
+					})
+				}
+			} else {
+				volumeMounts = append(volumeMounts, corev1.VolumeMount{
+					Name:      volumeName,
+					MountPath: gm.mountPath,
+					SubPath:   baseSubPath,
+				})
+			}
 		}
 	}
 

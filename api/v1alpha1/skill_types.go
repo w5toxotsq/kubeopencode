@@ -65,10 +65,15 @@ type GitSkillSource struct {
 	// Names selects specific skill directories under Path.
 	// Each name corresponds to a skill folder name containing SKILL.md.
 	// If omitted, ALL skills found under Path are included.
+	// Each name must be a simple directory name (no path separators or ".." allowed).
 	//
 	// Example: ["frontend-design", "webapp-testing"] selects only those two skills
 	// from the repository, ignoring all others.
 	// +optional
+	// +listType=set
+	// +kubebuilder:validation:items:MinLength=1
+	// +kubebuilder:validation:items:MaxLength=253
+	// +kubebuilder:validation:items:Pattern=`^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?$`
 	Names []string `json:"names,omitempty"`
 
 	// Depth specifies the clone depth for shallow cloning.
