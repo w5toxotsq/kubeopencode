@@ -27,10 +27,21 @@ This direction focuses on **usability** — reducing the friction between "I nee
 - **GitOps** — Native integration with ArgoCD, Flux for declarative agent management
 - **Policy engines** — OPA/Gatekeeper, Kyverno integration for agent governance
 - **Network security** — NetworkPolicy templates, service mesh integration
-- **Observability** — Prometheus metrics, OpenTelemetry tracing for task execution
 - **Multi-tenancy** — Namespace-level isolation, resource quotas, priority classes
 
 This direction focuses on **stability and security** — making KubeOpenCode ready for production environments.
+
+## Direction 3: Observability (OpenTelemetry)
+
+**Goal**: Full observability for AI agent workloads — understand what agents are doing, how they perform, and where they fail.
+
+- **OpenTelemetry integration** — Instrument controller and agent lifecycle with OTel traces, metrics, and logs
+- **Task execution tracing** — End-to-end distributed traces from Task creation through agent execution to completion
+- **Prometheus metrics** — Task duration, success/failure rates, queue depth, agent utilization, token usage
+- **Structured logging** — Consistent, queryable log format across controller, init containers, and agents
+- **Dashboard templates** — Pre-built Grafana dashboards for task throughput, agent health, and error analysis
+
+This direction focuses on **operational insight** — giving platform teams the data they need to run AI agents reliably at scale.
 
 ## Deferred
 
