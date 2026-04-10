@@ -11,8 +11,8 @@ metadata:
   name: rate-limited-agent
 spec:
   profile: "Rate-limited agent for API-quota-constrained backends"
-  agentImage: quay.io/kubeopencode/kubeopencode-agent-opencode:latest
-  executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  agentImage: ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest
+  executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
   maxConcurrentTasks: 3  # Only 3 Tasks can run at once
@@ -34,8 +34,8 @@ metadata:
   name: rate-limited-agent
 spec:
   profile: "Rate-limited agent with sliding window quota"
-  agentImage: quay.io/kubeopencode/kubeopencode-agent-opencode:latest
-  executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  agentImage: ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest
+  executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
   quota:

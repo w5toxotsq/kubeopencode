@@ -129,13 +129,13 @@ make agent-build AGENT=attach
 
 ### Image Naming
 
-Default: `quay.io/kubeopencode/kubeopencode-agent-<name>:latest`
+Default: `ghcr.io/kubeopencode/kubeopencode-agent-<name>:latest`
 
 Customize with variables:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `IMG_REGISTRY` | `quay.io` | Container registry |
+| `IMG_REGISTRY` | `ghcr.io` | Container registry |
 | `IMG_ORG` | `kubeopencode` | Registry organization |
 | `VERSION` | `latest` | Image tag |
 
@@ -196,7 +196,7 @@ docker run --rm \
   -v /tmp/tools:/tools \
   -v /tmp/task.md:/workspace/task.md:ro \
   -e PATH="/tools:$PATH" \
-  quay.io/kubeopencode/kubeopencode-agent-my-executor:latest \
+  ghcr.io/kubeopencode/kubeopencode-agent-my-executor:latest \
   /tools/opencode run "$(cat /workspace/task.md)"
 ```
 
@@ -259,7 +259,7 @@ If the devbox image doesn't include a tool you need:
 ### Option 1: Create Custom Executor
 
 ```dockerfile
-FROM quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+FROM ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
 
 # Add additional tools
 USER root

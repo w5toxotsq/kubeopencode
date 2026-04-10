@@ -23,7 +23,7 @@ metadata:
   name: test-heartbeat
   namespace: default
 spec:
-  executorImage: "quay.io/kubeopencode/kubeopencode-agent-devbox:latest"
+  executorImage: "ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest"
   workspaceDir: /workspace
   port: 4096
   standby:
@@ -154,7 +154,7 @@ metadata:
   name: test-short-timeout
   namespace: default
 spec:
-  executorImage: "quay.io/kubeopencode/kubeopencode-agent-devbox:latest"
+  executorImage: "ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest"
   workspaceDir: /workspace
   port: 4096
   standby:

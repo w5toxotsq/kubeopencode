@@ -15,7 +15,7 @@ NO_CACHE_FLAG := $(if $(NO_CACHE),--no-cache,)
 OPENCODE_VERSION ?= 1.3.17
 
 # Image URL configuration
-IMG_REGISTRY ?= quay.io
+IMG_REGISTRY ?= ghcr.io
 IMG_ORG ?= kubeopencode
 IMG_NAME ?= kubeopencode-agent-$(AGENT)
 VERSION ?= 0.0.21

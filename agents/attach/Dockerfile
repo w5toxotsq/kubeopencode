@@ -22,7 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy OpenCode binary from the opencode agent image
 # Both images use Debian, so glibc binary is compatible
-COPY --from=quay.io/kubeopencode/kubeopencode-agent-opencode:latest /opencode /usr/local/bin/opencode
+COPY --from=ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest /opencode /usr/local/bin/opencode
 
 # Create workspace directory for task.md mount
 # This matches the pattern used in devbox and other executor images

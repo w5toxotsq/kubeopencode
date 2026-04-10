@@ -28,7 +28,7 @@ kind: Agent
 metadata:
   name: persistent-agent
 spec:
-  executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
   port: 4096

@@ -13,7 +13,7 @@ kind: AgentTemplate
 metadata:
   name: team-config
 spec:
-  executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
   contexts:
@@ -40,7 +40,7 @@ spec:
     name: team-config
   profile: "My personal development agent"
   # Required fields (even with template):
-  executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
   # Instance-specific settings:

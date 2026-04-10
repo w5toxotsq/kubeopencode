@@ -10,13 +10,13 @@
 #   # As init container in Kubernetes Pod:
 #   initContainers:
 #     - name: opencode-init
-#       image: quay.io/kubeopencode/kubeopencode-agent-opencode:latest
+#       image: ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest
 #       volumeMounts:
 #         - name: tools
 #           mountPath: /tools
 #   containers:
 #     - name: agent
-#       image: quay.io/kubeopencode/kubeopencode-agent-common-dev:latest
+#       image: ghcr.io/kubeopencode/kubeopencode-agent-common-dev:latest
 #       command: ["/tools/opencode", "run", "--format", "json", "..."]
 #       volumeMounts:
 #         - name: tools

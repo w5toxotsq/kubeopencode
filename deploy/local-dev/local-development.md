@@ -75,12 +75,12 @@ Load images into the Kind cluster (required because Kind cannot pull from local 
 
 ```bash
 # Load controller image
-kind load docker-image quay.io/kubeopencode/kubeopencode:latest --name kubeopencode
+kind load docker-image ghcr.io/kubeopencode/kubeopencode:latest --name kubeopencode
 
 # Tag and load all agent images with :dev tag
 for img in opencode devbox attach; do
-  docker tag quay.io/kubeopencode/kubeopencode-agent-${img}:$(make -s print-version) quay.io/kubeopencode/kubeopencode-agent-${img}:dev
-  kind load docker-image quay.io/kubeopencode/kubeopencode-agent-${img}:dev --name kubeopencode
+  docker tag ghcr.io/kubeopencode/kubeopencode-agent-${img}:$(make -s print-version) ghcr.io/kubeopencode/kubeopencode-agent-${img}:dev
+  kind load docker-image ghcr.io/kubeopencode/kubeopencode-agent-${img}:dev --name kubeopencode
 done
 ```
 
@@ -670,7 +670,7 @@ If you see `ErrImagePull` or `ImagePullBackOff`, ensure:
 3. **Agent tasks:** The `attach` image (`kubeopencode-agent-attach`) must be loaded. This image is used by `agentRef` Task Pods to connect to the Agent's OpenCode server. Build and load it with:
    ```bash
    make agent-build AGENT=attach
-   kind load docker-image quay.io/kubeopencode/kubeopencode-agent-attach:latest --name kubeopencode
+   kind load docker-image ghcr.io/kubeopencode/kubeopencode-agent-attach:latest --name kubeopencode
    ```
 
 ### Controller Not Starting

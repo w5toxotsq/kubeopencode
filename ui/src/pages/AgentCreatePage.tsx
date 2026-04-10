@@ -264,7 +264,7 @@ function AgentCreatePage() {
                 id="agentImage"
                 value={agentImage}
                 onChange={(e) => setAgentImage(e.target.value)}
-                placeholder={hasTemplate && templateDetail?.agentImage ? templateDetail.agentImage : 'quay.io/kubeopencode/kubeopencode-agent-opencode:latest'}
+                placeholder={hasTemplate && templateDetail?.agentImage ? templateDetail.agentImage : 'ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest'}
                 className={monoInputClass}
               />
             </div>
@@ -278,7 +278,7 @@ function AgentCreatePage() {
                 id="executorImage"
                 value={executorImage}
                 onChange={(e) => setExecutorImage(e.target.value)}
-                placeholder={hasTemplate && templateDetail?.executorImage ? templateDetail.executorImage : 'quay.io/kubeopencode/kubeopencode-agent-devbox:latest'}
+                placeholder={hasTemplate && templateDetail?.executorImage ? templateDetail.executorImage : 'ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest'}
                 className={monoInputClass}
               />
             </div>

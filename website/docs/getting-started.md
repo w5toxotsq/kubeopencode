@@ -58,9 +58,9 @@ make docker-build
 make agent-build-all
 
 # Load images into Kind
-kind load docker-image quay.io/kubeopencode/kubeopencode:latest --name kubeopencode
+kind load docker-image ghcr.io/kubeopencode/kubeopencode:latest --name kubeopencode
 for img in opencode devbox attach; do
-  kind load docker-image quay.io/kubeopencode/kubeopencode-agent-${img}:latest --name kubeopencode
+  kind load docker-image ghcr.io/kubeopencode/kubeopencode-agent-${img}:latest --name kubeopencode
 done
 ```
 
@@ -153,7 +153,7 @@ For production clusters, install from the OCI registry:
 ```bash
 kubectl create namespace kubeopencode-system
 
-helm install kubeopencode oci://quay.io/kubeopencode/helm-charts/kubeopencode \
+helm install kubeopencode oci://ghcr.io/kubeopencode/helm-charts/kubeopencode \
   --namespace kubeopencode-system \
   --set server.enabled=true
 ```

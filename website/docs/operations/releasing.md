@@ -14,11 +14,11 @@ A KubeOpenCode release produces the following artifacts:
 
 | Artifact | Registry | Example |
 |----------|----------|---------|
-| Controller image | `quay.io/kubeopencode/kubeopencode` | `:v0.1.0` |
-| Agent OpenCode image | `quay.io/kubeopencode/kubeopencode-agent-opencode` | `:v0.1.0` |
-| Agent Devbox image | `quay.io/kubeopencode/kubeopencode-agent-devbox` | `:v0.1.0` |
-| Agent Attach image | `quay.io/kubeopencode/kubeopencode-agent-attach` | `:v0.1.0` |
-| Helm chart | `oci://quay.io/kubeopencode/helm-charts/kubeopencode` | `0.1.0` |
+| Controller image | `ghcr.io/kubeopencode/kubeopencode` | `:v0.1.0` |
+| Agent OpenCode image | `ghcr.io/kubeopencode/kubeopencode-agent-opencode` | `:v0.1.0` |
+| Agent Devbox image | `ghcr.io/kubeopencode/kubeopencode-agent-devbox` | `:v0.1.0` |
+| Agent Attach image | `ghcr.io/kubeopencode/kubeopencode-agent-attach` | `:v0.1.0` |
+| Helm chart | `oci://ghcr.io/kubeopencode/helm-charts/kubeopencode` | `0.1.0` |
 | GitHub Release | github.com/kubeopencode/kubeopencode/releases | `v0.1.0` |
 
 All container images are built for `linux/amd64` and `linux/arm64`.
@@ -96,7 +96,7 @@ go run -ldflags "-X main.Version=NEW_VERSION" ./cmd/kubeopencode version
 
 # Verify Helm chart renders correct image tags
 helm template kubeopencode charts/kubeopencode | grep 'image:'
-# Expected: quay.io/kubeopencode/kubeopencode:vNEW_VERSION
+# Expected: ghcr.io/kubeopencode/kubeopencode:vNEW_VERSION
 ```
 
 ### Step 4: Commit and Create PR
@@ -149,15 +149,15 @@ Go to the GitHub Actions tab and monitor the `Release` workflow. Ensure all jobs
 
 ```bash
 # Verify container images
-docker pull quay.io/kubeopencode/kubeopencode:vNEW_VERSION
-docker run --rm quay.io/kubeopencode/kubeopencode:vNEW_VERSION version
+docker pull ghcr.io/kubeopencode/kubeopencode:vNEW_VERSION
+docker run --rm ghcr.io/kubeopencode/kubeopencode:vNEW_VERSION version
 # Expected output: kubeopencode version NEW_VERSION
 
 # Verify Helm chart
-helm pull oci://quay.io/kubeopencode/helm-charts/kubeopencode --version NEW_VERSION
+helm pull oci://ghcr.io/kubeopencode/helm-charts/kubeopencode --version NEW_VERSION
 
 # Test Helm install (dry-run)
-helm install kubeopencode oci://quay.io/kubeopencode/helm-charts/kubeopencode \
+helm install kubeopencode oci://ghcr.io/kubeopencode/helm-charts/kubeopencode \
   --version NEW_VERSION \
   --namespace kubeopencode-system \
   --create-namespace \
@@ -198,13 +198,13 @@ gh release edit vNEW_VERSION --notes "$(cat <<'EOF'
 
 \```bash
 # Helm install
-helm install kubeopencode oci://quay.io/kubeopencode/helm-charts/kubeopencode \
+helm install kubeopencode oci://ghcr.io/kubeopencode/helm-charts/kubeopencode \
   --version NEW_VERSION \
   --namespace kubeopencode-system \
   --create-namespace
 
 # Or upgrade
-helm upgrade kubeopencode oci://quay.io/kubeopencode/helm-charts/kubeopencode \
+helm upgrade kubeopencode oci://ghcr.io/kubeopencode/helm-charts/kubeopencode \
   --version NEW_VERSION \
   --namespace kubeopencode-system
 \```
@@ -239,7 +239,7 @@ git push origin :refs/tags/vNEW_VERSION
 ### Image build fails
 
 Check the workflow logs. Common causes:
-- Quay.io credentials expired (`QUAY_ROBOT_ACCOUNT` / `QUAY_TOKEN` secrets)
+- `GITHUB_TOKEN` permissions issue (ensure `packages: write` is set)
 - Docker buildx platform issues
 - `build-agent-attach` depends on `build-agent-opencode` — if opencode fails, attach also fails
 
@@ -247,7 +247,7 @@ Check the workflow logs. Common causes:
 
 Ensure the Helm OCI registry login is working:
 ```bash
-echo "$QUAY_TOKEN" | helm registry login quay.io -u $QUAY_ROBOT_ACCOUNT --password-stdin
+echo "$GITHUB_TOKEN" | helm registry login ghcr.io -u $GITHUB_ACTOR --password-stdin
 ```
 
 ## Key Files

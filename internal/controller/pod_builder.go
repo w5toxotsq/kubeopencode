@@ -220,20 +220,20 @@ func defaultString(val, defaultVal string) string {
 const (
 	// DefaultAgentImage is the default OpenCode init container image.
 	// This image copies the OpenCode binary to /tools volume.
-	DefaultAgentImage = "quay.io/kubeopencode/kubeopencode-agent-opencode:latest"
+	DefaultAgentImage = "ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest"
 
 	// DefaultExecutorImage is the default worker container image for task execution.
 	// This is the development environment where tasks actually run.
-	DefaultExecutorImage = "quay.io/kubeopencode/kubeopencode-agent-devbox:latest"
+	DefaultExecutorImage = "ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest"
 
 	// DefaultAttachImage is the lightweight image for Server-mode --attach Pods.
 	// This minimal image (~25MB) contains only the OpenCode binary + shell + CA certs.
 	// Used when Tasks connect to a persistent OpenCode server via --attach flag.
-	DefaultAttachImage = "quay.io/kubeopencode/kubeopencode-agent-attach:latest"
+	DefaultAttachImage = "ghcr.io/kubeopencode/kubeopencode-agent-attach:latest"
 
 	// DefaultKubeOpenCodeImage is the default kubeopencode container image.
 	// This unified image provides: controller, git-init (Git clone), etc.
-	DefaultKubeOpenCodeImage = "quay.io/kubeopencode/kubeopencode:latest"
+	DefaultKubeOpenCodeImage = "ghcr.io/kubeopencode/kubeopencode:latest"
 
 	// ToolsVolumeName is the volume name for sharing OpenCode binary between containers
 	ToolsVolumeName = "tools"

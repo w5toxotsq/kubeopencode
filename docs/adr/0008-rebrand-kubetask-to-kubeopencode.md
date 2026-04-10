@@ -26,7 +26,7 @@ Key changes:
 - Binary: `cmd/kubetask/` → `cmd/kubeopencode/`
 - Namespace: `kubetask-system` → `kubeopencode-system`
 - Config CRD: `KubeTaskConfig` → `KubeOpenCodeConfig`
-- Container registry: `quay.io/kubetask/` → `quay.io/kubeopencode/`
+- Container registry: `ghcr.io/kubetask/` → `ghcr.io/kubeopencode/`
 
 Agent consolidation:
 

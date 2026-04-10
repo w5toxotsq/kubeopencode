@@ -20,7 +20,7 @@ KubeOpenCode brings Agentic AI capabilities into the Kubernetes ecosystem. By le
 - Use Helm/Kustomize for batch operations (multiple Tasks)
 - Event-driven triggers delegated to [Argo Events](https://argoproj.github.io/argo-events/)
 
-**Unified Binary:** Single container image (`quay.io/kubeopencode/kubeopencode`) with subcommands: `controller`, `git-init`, `context-init`, `url-fetch`. Image constant: `internal/controller/pod_builder.go` → `DefaultKubeOpenCodeImage`.
+**Unified Binary:** Single container image (`ghcr.io/kubeopencode/kubeopencode`) with subcommands: `controller`, `git-init`, `context-init`, `url-fetch`. Image constant: `internal/controller/pod_builder.go` → `DefaultKubeOpenCodeImage`.
 
 ## Core Concepts
 
@@ -149,10 +149,10 @@ make e2e-reload     # Rebuild + reload controller image + run e2e-test
 > **Known issue: Kind image cache stale after reload.** `make local-dev-reload` does `kind load docker-image` + `kubectl rollout restart`, but Kind nodes cache images by digest. If the `:latest` tag digest on the node matches, `kind load` skips the actual load. The restarted Pod then pulls the stale cached image. **Workaround:**
 > ```bash
 > # 1. Tag with a unique name to force Kind to re-tag on the node
-> docker tag quay.io/kubeopencode/kubeopencode:latest quay.io/kubeopencode/kubeopencode:dev-$(date +%s)
-> kind load docker-image quay.io/kubeopencode/kubeopencode:dev-$(date +%s) --name kubeopencode
+> docker tag ghcr.io/kubeopencode/kubeopencode:latest ghcr.io/kubeopencode/kubeopencode:dev-$(date +%s)
+> kind load docker-image ghcr.io/kubeopencode/kubeopencode:dev-$(date +%s) --name kubeopencode
 > # 2. Patch the deployment to use the new tag
-> kubectl set image deployment/kubeopencode-controller controller=quay.io/kubeopencode/kubeopencode:dev-$(date +%s) -n kubeopencode-system
+> kubectl set image deployment/kubeopencode-controller controller=ghcr.io/kubeopencode/kubeopencode:dev-$(date +%s) -n kubeopencode-system
 > # 3. Verify with: kubectl exec -n kubeopencode-system deployment/kubeopencode-controller -- /kubeopencode version
 > ```
 > Also remember to `kubectl apply -f deploy/crds/` if CRD schemas changed (new fields won't be accepted until CRDs are updated).

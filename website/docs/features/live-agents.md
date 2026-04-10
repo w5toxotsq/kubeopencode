@@ -30,7 +30,7 @@ metadata:
   name: team-agent
 spec:
   profile: "Team development agent"
-  executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
   port: 4096                      # OpenCode server port (default: 4096)

@@ -82,7 +82,7 @@ type CleanupConfig struct {
 type SystemImageConfig struct {
 	// Image specifies the system image to use for internal KubeOpenCode components.
 	// If not specified, defaults to the built-in DefaultKubeOpenCodeImage.
-	// Example: "quay.io/kubeopencode/kubeopencode:v0.2.0"
+	// Example: "ghcr.io/kubeopencode/kubeopencode:v0.2.0"
 	// +optional
 	Image string `json:"image,omitempty"`
 

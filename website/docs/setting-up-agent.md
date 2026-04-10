@@ -145,8 +145,8 @@ At pod startup, the init container copies the OpenCode binary from `agentImage` 
 
 If you don't specify images, KubeOpenCode uses these defaults:
 
-- **OpenCode init**: `quay.io/kubeopencode/kubeopencode-agent-opencode:latest`
-- **Devbox executor**: `quay.io/kubeopencode/kubeopencode-agent-devbox:latest`
+- **OpenCode init**: `ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest`
+- **Devbox executor**: `ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest`
 
 For most users, the defaults work out of the box — you don't need to set `agentImage` or `executorImage`.
 
@@ -165,7 +165,7 @@ When configuring an Agent, the controller resolves images as follows:
 The default `devbox` image includes Go, Node.js, and Python. If your project needs a different runtime (Rust, Java, Ruby, etc.), build a custom executor image:
 
 ```dockerfile
-FROM quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+FROM ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
 
 # Add your language runtime
 RUN apt-get update && apt-get install -y \
@@ -399,8 +399,8 @@ spec:
         name: ai-credentials
 
   # Step 2: Images (optional — defaults work for most cases)
-  # agentImage: quay.io/kubeopencode/kubeopencode-agent-opencode:latest
-  # executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  # agentImage: ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest
+  # executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
 
   # Step 3: Workspace
   workspaceDir: /workspace
@@ -450,8 +450,8 @@ metadata:
   name: team-base
   namespace: my-team
 spec:
-  agentImage: quay.io/kubeopencode/kubeopencode-agent-opencode:latest
-  executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  agentImage: ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest
+  executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
   workspaceDir: /workspace
   serviceAccountName: kubeopencode-agent
   config: |

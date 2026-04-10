@@ -100,7 +100,7 @@ kind: Agent
 metadata:
   name: default
 spec:
-  agentImage: quay.io/kubeopencode/kubeopencode-agent-opencode:latest
+  agentImage: ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest
   credentials:
     - name: github-token
       secretRef:

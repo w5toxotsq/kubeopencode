@@ -96,9 +96,9 @@ Agent Deployments use a two-container pattern:
 
 | Field | Container | Default |
 |-------|-----------|---------|
-| `agentImage` | Init Container (OpenCode) | `quay.io/kubeopencode/kubeopencode-agent-opencode:latest` |
-| `executorImage` | Worker Container (Server) | `quay.io/kubeopencode/kubeopencode-agent-devbox:latest` |
-| `attachImage` | Task Pod (agentRef) | `quay.io/kubeopencode/kubeopencode-agent-attach:latest` |
+| `agentImage` | Init Container (OpenCode) | `ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest` |
+| `executorImage` | Worker Container (Server) | `ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest` |
+| `attachImage` | Task Pod (agentRef) | `ghcr.io/kubeopencode/kubeopencode-agent-attach:latest` |
 
 ### Task Execution Flow
 
@@ -343,7 +343,7 @@ metadata:
 spec:
   # System image for internal components (git-init, context-init)
   systemImage:
-    image: quay.io/kubeopencode/kubeopencode:latest
+    image: ghcr.io/kubeopencode/kubeopencode:latest
     imagePullPolicy: Always  # Always/Never/IfNotPresent (default: IfNotPresent)
 
   # Task cleanup (optional)

@@ -240,7 +240,7 @@ kind: Agent
 metadata:
   name: default
 spec:
-  agentImage: quay.io/kubeopencode/kubeopencode-agent-opencode:latest
+  agentImage: ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest
   serviceAccountName: kubeopencode-agent
   contexts:
     # Organization coding standards - applied to all tasks
@@ -277,7 +277,7 @@ kind: Agent
 metadata:
   name: default
 spec:
-  agentImage: quay.io/kubeopencode/kubeopencode-agent-opencode:latest
+  agentImage: ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest
   serviceAccountName: kubeopencode-agent
   credentials:
     # GitHub token as environment variable

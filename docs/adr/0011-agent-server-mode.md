@@ -56,7 +56,7 @@ kind: Agent
 metadata:
   name: slack-agent
 spec:
-  executorImage: quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+  executorImage: ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
   workspaceDir: /workspace
   serverConfig:
     port: 4096  # OpenCode server port (default: 4096)

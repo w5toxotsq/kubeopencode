@@ -10,7 +10,7 @@ GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_DATE := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
 # Image URL to use for building/pushing image targets
-IMG_REGISTRY ?= quay.io
+IMG_REGISTRY ?= ghcr.io
 IMG_ORG ?= kubeopencode
 IMG_NAME ?= kubeopencode
 IMG ?= $(IMG_REGISTRY)/$(IMG_ORG)/$(IMG_NAME):$(VERSION)
@@ -358,14 +358,14 @@ e2e-reload: e2e-docker-build e2e-kind-load e2e-verify-image ## Rebuild and reloa
 # Build agent images for e2e testing
 # Uses E2E_IMG_TAG (default: dev) to avoid :latest which triggers PullAlways in Kind
 e2e-agent-build: ## Build agent images for e2e testing (echo + opencode)
-	docker build -t quay.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) agents/echo/
-	$(MAKE) -C agents AGENT=opencode build IMG=quay.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG)
+	docker build -t ghcr.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) agents/echo/
+	$(MAKE) -C agents AGENT=opencode build IMG=ghcr.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG)
 .PHONY: e2e-agent-build
 
 # Load agent images into kind cluster
 e2e-agent-load: ## Load agent images into kind cluster (echo + opencode)
-	kind load docker-image quay.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) --name $(E2E_CLUSTER_NAME)
-	kind load docker-image quay.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) --name $(E2E_CLUSTER_NAME)
+	kind load docker-image ghcr.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) --name $(E2E_CLUSTER_NAME)
+	kind load docker-image ghcr.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) --name $(E2E_CLUSTER_NAME)
 .PHONY: e2e-agent-load
 
 
@@ -373,8 +373,8 @@ e2e-agent-load: ## Load agent images into kind cluster (echo + opencode)
 e2e-test: ## Run e2e tests
 	@echo "Running e2e tests..."
 	E2E_TEST_NAMESPACE=kubeopencode-e2e-test \
-	E2E_ECHO_IMAGE=quay.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) \
-	E2E_AGENT_IMAGE=quay.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) \
+	E2E_ECHO_IMAGE=ghcr.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) \
+	E2E_AGENT_IMAGE=ghcr.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) \
 	go test -v ./e2e/... -timeout 30m -ginkgo.v -ginkgo.flake-attempts=2
 .PHONY: e2e-test
 
@@ -382,8 +382,8 @@ e2e-test: ## Run e2e tests
 e2e-test-focus: ## Run specific e2e test (usage: make e2e-test-focus FOCUS="Task")
 	@echo "Running focused e2e tests..."
 	E2E_TEST_NAMESPACE=kubeopencode-e2e-test \
-	E2E_ECHO_IMAGE=quay.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) \
-	E2E_AGENT_IMAGE=quay.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) \
+	E2E_ECHO_IMAGE=ghcr.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) \
+	E2E_AGENT_IMAGE=ghcr.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) \
 	go test -v ./e2e/... -timeout 30m -ginkgo.v -ginkgo.focus="$(FOCUS)" -ginkgo.flake-attempts=2
 .PHONY: e2e-test-focus
 
@@ -396,8 +396,8 @@ e2e-test-focus: ## Run specific e2e test (usage: make e2e-test-focus FOCUS="Task
 e2e-test-label: ## Run e2e tests by label (usage: make e2e-test-label LABEL="server")
 	@echo "Running e2e tests with label: $(LABEL)..."
 	E2E_TEST_NAMESPACE=kubeopencode-e2e-test \
-	E2E_ECHO_IMAGE=quay.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) \
-	E2E_AGENT_IMAGE=quay.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) \
+	E2E_ECHO_IMAGE=ghcr.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) \
+	E2E_AGENT_IMAGE=ghcr.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) \
 	go test -v ./e2e/... -timeout 30m -ginkgo.v -ginkgo.label-filter="$(LABEL)" -ginkgo.flake-attempts=2
 .PHONY: e2e-test-label
 
@@ -405,8 +405,8 @@ e2e-test-label: ## Run e2e tests by label (usage: make e2e-test-label LABEL="ser
 e2e-test-opencode: ## Run OpenCode integration tests with free models
 	@echo "Running OpenCode e2e tests (free model: opencode/big-pickle)..."
 	E2E_TEST_NAMESPACE=kubeopencode-e2e-test \
-	E2E_ECHO_IMAGE=quay.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) \
-	E2E_AGENT_IMAGE=quay.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) \
+	E2E_ECHO_IMAGE=ghcr.io/kubeopencode/kubeopencode-agent-echo:$(E2E_IMG_TAG) \
+	E2E_AGENT_IMAGE=ghcr.io/kubeopencode/kubeopencode-agent-opencode:$(E2E_IMG_TAG) \
 	go test -v ./e2e/... -timeout 30m -ginkgo.v -ginkgo.label-filter="opencode" -ginkgo.flake-attempts=2
 .PHONY: e2e-test-opencode
 

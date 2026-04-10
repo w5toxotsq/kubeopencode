@@ -51,11 +51,11 @@ describe('AgentDetailPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Executor Image')).toBeInTheDocument();
-      expect(screen.getByText('quay.io/kubeopencode/kubeopencode-agent-devbox:latest')).toBeInTheDocument();
+      expect(screen.getByText('ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest')).toBeInTheDocument();
     });
 
     expect(screen.getByText('Agent Image')).toBeInTheDocument();
-    expect(screen.getByText('quay.io/kubeopencode/kubeopencode-agent-opencode:latest')).toBeInTheDocument();
+    expect(screen.getByText('ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest')).toBeInTheDocument();
   });
 
   it('shows workspace directory', async () => {

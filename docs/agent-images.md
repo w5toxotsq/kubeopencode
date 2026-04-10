@@ -31,9 +31,9 @@ When configuring an Agent, the controller resolves images as follows:
 
 ### Default Images
 
-- OpenCode init: `quay.io/kubeopencode/kubeopencode-agent-opencode:latest`
-- Devbox executor: `quay.io/kubeopencode/kubeopencode-agent-devbox:latest`
-- Attach: `quay.io/kubeopencode/kubeopencode-agent-attach:latest`
+- OpenCode init: `ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest`
+- Devbox executor: `ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest`
+- Attach: `ghcr.io/kubeopencode/kubeopencode-agent-attach:latest`
 
 ## Building Agent Images
 
@@ -67,7 +67,7 @@ For detailed guidance on building custom agent images, see the [Agent Developer 
 ### Example Custom Executor
 
 ```dockerfile
-FROM quay.io/kubeopencode/kubeopencode-agent-devbox:latest
+FROM ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest
 
 # Add your custom tools
 RUN apt-get update && apt-get install -y \

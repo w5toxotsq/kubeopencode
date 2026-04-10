@@ -144,14 +144,14 @@ type AgentSpec struct {
 	// AgentImage specifies the OpenCode init container image.
 	// This image contains the OpenCode binary that gets copied to /tools volume.
 	// The init container runs this image and copies the opencode binary to /tools/opencode.
-	// If not specified, defaults to "quay.io/kubeopencode/kubeopencode-agent-opencode:latest".
+	// If not specified, defaults to "ghcr.io/kubeopencode/kubeopencode-agent-opencode:latest".
 	// +optional
 	AgentImage string `json:"agentImage,omitempty"`
 
 	// ExecutorImage specifies the main worker container image for task execution.
 	// This is the development environment where tasks actually run.
 	// The container uses /tools/opencode (provided by agentImage init container) to execute AI tasks.
-	// If not specified, defaults to "quay.io/kubeopencode/kubeopencode-agent-devbox:latest".
+	// If not specified, defaults to "ghcr.io/kubeopencode/kubeopencode-agent-devbox:latest".
 	// +optional
 	ExecutorImage string `json:"executorImage,omitempty"`
 
@@ -161,7 +161,7 @@ type AgentSpec struct {
 	// environment. Using a minimal image (~25MB) instead of devbox (~1GB) significantly
 	// reduces image pull time and resource usage.
 	//
-	// If not specified, defaults to "quay.io/kubeopencode/kubeopencode-agent-attach:latest".
+	// If not specified, defaults to "ghcr.io/kubeopencode/kubeopencode-agent-attach:latest".
 	// +optional
 	AttachImage string `json:"attachImage,omitempty"`
 

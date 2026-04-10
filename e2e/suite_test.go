@@ -60,13 +60,13 @@ const (
 	defaultTestNS = "kubeopencode-e2e-test"
 
 	// Default echo agent image (uses :dev tag to get IfNotPresent pull policy in Kind)
-	defaultEchoImage = "quay.io/kubeopencode/kubeopencode-agent-echo:dev"
+	defaultEchoImage = "ghcr.io/kubeopencode/kubeopencode-agent-echo:dev"
 
 	// Default OpenCode agent image / init container (uses :dev tag to get IfNotPresent pull policy in Kind)
-	defaultAgentImage = "quay.io/kubeopencode/kubeopencode-agent-opencode:dev"
+	defaultAgentImage = "ghcr.io/kubeopencode/kubeopencode-agent-opencode:dev"
 
 	// Default OpenCode agent image (init container that copies opencode binary)
-	defaultOpenCodeImage = "quay.io/kubeopencode/kubeopencode-agent-opencode:dev"
+	defaultOpenCodeImage = "ghcr.io/kubeopencode/kubeopencode-agent-opencode:dev"
 
 	// Test ServiceAccount name for e2e tests
 	testServiceAccount = "kubeopencode-e2e-agent"

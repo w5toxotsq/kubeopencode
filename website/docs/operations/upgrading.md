@@ -35,7 +35,7 @@ gh release view vNEW_VERSION
 ### Step 3: Upgrade via Helm
 
 ```bash
-helm upgrade kubeopencode oci://quay.io/kubeopencode/helm-charts/kubeopencode \
+helm upgrade kubeopencode oci://ghcr.io/kubeopencode/helm-charts/kubeopencode \
   --version NEW_VERSION \
   --namespace kubeopencode-system
 ```
@@ -54,7 +54,7 @@ kubectl apply -f charts/kubeopencode/crds/
 **Option B**: Apply from the OCI chart (pull and extract):
 
 ```bash
-helm pull oci://quay.io/kubeopencode/helm-charts/kubeopencode \
+helm pull oci://ghcr.io/kubeopencode/helm-charts/kubeopencode \
   --version NEW_VERSION --untar
 kubectl apply -f kubeopencode/crds/
 rm -rf kubeopencode/
