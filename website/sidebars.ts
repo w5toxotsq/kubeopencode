@@ -27,6 +27,18 @@ const sidebars: SidebarsConfig = {
         'features/pod-configuration',
       ],
     },
+    {
+      type: 'category',
+      label: 'Use Cases',
+      link: {
+        type: 'doc',
+        id: 'use-cases/index',
+      },
+      items: [
+        'use-cases/docker-in-docker',
+        'use-cases/vscode-in-browser',
+      ],
+    },
     'architecture',
     'security',
     {
