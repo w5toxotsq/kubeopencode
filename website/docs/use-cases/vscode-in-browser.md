@@ -6,20 +6,22 @@ Run a full VS Code editor alongside your AI agent, accessible from any browser. 
 
 [code-server](https://github.com/coder/code-server) by Coder runs VS Code as a web application inside a container. Combined with KubeOpenCode's [extraPorts](../features/pod-configuration.md#extra-ports) feature, you can expose the VS Code UI through the Agent's Service and access it via `kubectl port-forward` or Ingress.
 
-```
-┌─────────────────────────────────────────┐
-│ Agent Pod                               │
-│                                         │
-│  ┌─────────────┐   ┌────────────────┐   │
-│  │ opencode    │   │ code-server    │   │
-│  │ serve :4096 │   │ :8080          │   │
-│  └─────────────┘   └────────────────┘   │
-│         ↑                  ↑            │
-└─────────┼──────────────────┼────────────┘
-          │                  │
-    Service :4096       Service :8080
-          │                  │
-   kubeoc attach     browser (VS Code)
+```mermaid
+graph TB
+    subgraph pod["Agent Pod"]
+        opencode["opencode serve :4096"]
+        codeserver["code-server :8080"]
+    end
+
+    svc4096["Service :4096"]
+    svc8080["Service :8080"]
+    attach["kubeoc attach"]
+    browser["Browser (VS Code)"]
+
+    svc4096 --> opencode
+    svc8080 --> codeserver
+    attach --> svc4096
+    browser --> svc8080
 ```
 
 ## Custom Executor Image
