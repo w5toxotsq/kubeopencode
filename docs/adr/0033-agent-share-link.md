@@ -152,6 +152,22 @@ These commands patch the Agent spec declaratively.
 - Password-based authentication (decided against in design phase for simplicity)
 - Persistent session identity for shared users (all share users appear as the same ServiceAccount)
 
+### Decision: No `externalURL` Configuration (for now)
+
+We considered adding a `server.externalURL` field to `KubeOpenCodeConfig` so the controller could generate a full share URL (e.g., `https://kubeopencode.example.com/s/{token}`) in `status.share.url`.
+
+**Decision: Not implementing at this stage.** Rationale:
+
+1. **UI auto-detection covers the primary use case.** The Agent detail page constructs the share URL using `window.location.origin`. When a user accesses KubeOpenCode through an Ingress (production) or NodePort (internal), the copied URL is already correct and shareable.
+
+2. **CLI is acceptable without it.** The CLI outputs `Path: /s/{token}` with a note to construct the full URL manually. CLI users typically have cluster access and know their server address.
+
+3. **externalURL is mainly for server-initiated links.** Industry precedent (Argo Workflows `server.baseUrl`, Grafana `root_url`, GitLab `external_url`) shows that this configuration is primarily needed when the server proactively pushes links — in notifications, webhooks, or emails. In our case, the user manually copies the link from the UI, making auto-detection sufficient.
+
+4. **port-forward URLs are inherently local.** When using `kubectl port-forward`, the generated URL (`http://localhost:2746/s/...`) only works on the local machine. An `externalURL` config would fix this, but port-forward is a development workflow — production deployments use Ingress where auto-detection works correctly.
+
+**When to revisit:** If we add notification/webhook features (e.g., auto-posting share links to Slack when enabled), `externalURL` becomes necessary. The implementation is minimal: add the field to `KubeOpenCodeConfig`, read it in the controller during share reconciliation, and set `status.share.url`.
+
 ## Supersedes
 
 None (new feature)
