@@ -1,0 +1,71 @@
+package analyzer
+
+import (
+	"context"
+	"testing"
+
+	"github.com/kubeopencode/kubeopencode/internal/k8s"
+)
+
+func TestNew(t *testing.T) {
+	a := New("test-api-key")
+	if a == nil {
+		t.Fatal("expected non-nil analyzer")
+	}
+	if a.model == "" {
+		t.Fatal("expected non-empty model")
+	}
+}
+
+func TestNewWithModel(t *testing.T) {
+	model := "gpt-4"
+	a := NewWithModel("test-api-key", model)
+	if a.model != model {
+		t.Errorf("expected model %q, got %q", model, a.model)
+	}
+}
+
+func TestAnalyze_InvalidResource(t *testing.T) {
+	a := New("invalid-key")
+	ctx := context.Background()
+
+	resource := &k8s.Resource{
+		Kind:      "pod",
+		Name:      "test-pod",
+		Namespace: "default",
+		Raw: map[string]interface{}{
+			"apiVersion": "v1",
+			"kind":       "Pod",
+			"metadata": map[string]interface{}{
+				"name":      "test-pod",
+				"namespace": "default",
+			},
+		},
+	}
+
+	_, err := a.Analyze(ctx, resource)
+	if err == nil {
+		t.Fatal("expected error with invalid API key")
+	}
+}
+
+func TestResource_ToJSON(t *testing.T) {
+	r := &k8s.Resource{
+		Kind: "pod",
+		Name: "test",
+		Raw: map[string]interface{}{
+			"kind": "Pod",
+			"metadata": map[string]interface{}{
+				"name": "test",
+			},
+		},
+	}
+
+	json, err := r.ToJSON()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if json == "" {
+		t.Fatal("expected non-empty JSON")
+	}
+}
