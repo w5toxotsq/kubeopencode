@@ -45,7 +45,7 @@ func TestAnalyze_InvalidResource(t *testing.T) {
 
 	_, err := a.Analyze(ctx, resource)
 	// An invalid API key should always result in an authentication error from the upstream API.
-	// Note: this test makes a real network call; consider mocking the client in the future.
+	// TODO: mock the HTTP client here so this test doesn't require network access.
 	if err == nil {
 		t.Fatal("expected error with invalid API key")
 	}
@@ -70,4 +70,24 @@ func TestResource_ToJSON(t *testing.T) {
 	if jsonStr == "" {
 		t.Fatal("expected non-empty JSON")
 	}
+
+	// Sanity check: the JSON output should at least contain the resource name.
+	if !contains(jsonStr, "test") {
+		t.Errorf("expected JSON to contain resource name 'test', got: %s", jsonStr)
+	}
+}
+
+// contains is a simple helper to check substring presence in a string.
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
+		(len(s) > 0 && stringContains(s, substr)))
+}
+
+func stringContains(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
