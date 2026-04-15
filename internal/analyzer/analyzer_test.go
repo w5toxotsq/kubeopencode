@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/kubeopencode/kubeopencode/internal/k8s"
@@ -72,22 +73,7 @@ func TestResource_ToJSON(t *testing.T) {
 	}
 
 	// Sanity check: the JSON output should at least contain the resource name.
-	if !contains(jsonStr, "test") {
+	if !strings.Contains(jsonStr, "test") {
 		t.Errorf("expected JSON to contain resource name 'test', got: %s", jsonStr)
 	}
-}
-
-// contains is a simple helper to check substring presence in a string.
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
-		(len(s) > 0 && stringContains(s, substr)))
-}
-
-func stringContains(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
