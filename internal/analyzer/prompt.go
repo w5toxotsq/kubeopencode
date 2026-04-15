@@ -36,7 +36,9 @@ func buildAnalysisPrompt(resourceType, resourceName, namespace, resourceJSON str
 	sb.WriteString("Resource Configuration (JSON):\n```json\n")
 	sb.WriteString(resourceJSON)
 	sb.WriteString("\n```\n\n")
-	sb.WriteString("Please provide a detailed analysis of this resource configuration, focusing on security, reliability, and best practices.")
+	// Personal preference: also ask for a one-line TL;DR at the top so I can
+	// skim results quickly when reviewing a lot of resources.
+	sb.WriteString("Start with a single TL;DR sentence, then provide a detailed analysis of this resource configuration, focusing on security, reliability, and best practices.")
 
 	return sb.String()
 }
@@ -75,8 +77,4 @@ type resourceEntry struct {
 // since it's useful for surfacing non-actionable observations without alarming users.
 var severityLevels = []string{"Critical", "High", "Medium", "Low", "Info"}
 
-// formatAnalysisRequest returns a formatted request string combining the
-// system context and the user prompt for logging or debugging purposes.
-func formatAnalysisRequest(userPrompt string) string {
-	return fmt.Sprintf("[SYSTEM]\n%s\n", systemPrompt) + fmt.Sprintf("[USER]\n%s", userPrompt)
-}
+// formatAnalysisRequest returns a formatted reques
