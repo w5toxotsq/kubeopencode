@@ -44,6 +44,7 @@ func TestAnalyze_InvalidResource(t *testing.T) {
 	}
 
 	_, err := a.Analyze(ctx, resource)
+	// An invalid API key should always result in an authentication error from the upstream API.
 	if err == nil {
 		t.Fatal("expected error with invalid API key")
 	}
@@ -61,11 +62,11 @@ func TestResource_ToJSON(t *testing.T) {
 		},
 	}
 
-	json, err := r.ToJSON()
+	jsonStr, err := r.ToJSON()
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if json == "" {
+	if jsonStr == "" {
 		t.Fatal("expected non-empty JSON")
 	}
 }
