@@ -45,6 +45,7 @@ func TestAnalyze_InvalidResource(t *testing.T) {
 
 	_, err := a.Analyze(ctx, resource)
 	// An invalid API key should always result in an authentication error from the upstream API.
+	// Note: this test makes a real network call; consider mocking the client in the future.
 	if err == nil {
 		t.Fatal("expected error with invalid API key")
 	}
