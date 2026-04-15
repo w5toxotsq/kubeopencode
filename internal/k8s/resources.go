@@ -3,6 +3,7 @@ package k8s
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -73,10 +74,14 @@ func (c *Client) ListResources(ctx context.Context, resourceType ResourceType, n
 }
 
 // SupportedResourceTypes returns the list of resource types supported for analysis.
+// Returns types in sorted order for consistent, predictable output.
 func SupportedResourceTypes() []ResourceType {
 	types := make([]ResourceType, 0, len(groupVersionResources))
 	for rt := range groupVersionResources {
 		types = append(types, rt)
 	}
+	sort.Slice(types, func(i, j int) bool {
+		return types[i] < types[j]
+	})
 	return types
 }
