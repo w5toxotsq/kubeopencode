@@ -42,6 +42,7 @@ func init() {
 
 	viper.BindPFlag("kubeconfig", rootCmd.PersistentFlags().Lookup("kubeconfig"))
 	viper.BindPFlag("namespace", rootCmd.PersistentFlags().Lookup("namespace"))
+	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
 }
 
 func initConfig() {
@@ -58,5 +59,8 @@ func initConfig() {
 		viper.SetConfigName(".kubeopencode")
 	}
 	viper.AutomaticEnv()
-	viper.ReadInConfig()
+	// Log which config file is being used when verbose mode is on
+	if err := viper.ReadInConfig(); err == nil && verbose {
+		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	}
 }
