@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/clientcmd"
@@ -32,6 +33,8 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	"statefulset": {Group: "apps", Version: "v1", Resource: "statefulsets"},
 	// added ingress since I use it frequently in my homelab setup
 	"ingress":     {Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"},
+	// added daemonset for monitoring agents (node-exporter, etc.)
+	"daemonset":   {Group: "apps", Version: "v1", Resource: "daemonsets"},
 }
 
 func NewClient(kubeconfigPath string) (*Client, error) {
@@ -55,6 +58,9 @@ func NewClient(kubeconfigPath string) (*Client, error) {
 }
 
 func (c *Client) GetResource(ctx context.Context, kind, name, namespace string) (*Resource, error) {
+	// normalize kind to lowercase so callers don't have to worry about casing
+	kind = strings.ToLower(kind)
+
 	gvr, ok := resourceMap[kind]
 	if !ok {
 		return nil, fmt.Errorf("unsupported resource type: %s", kind)
