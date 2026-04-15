@@ -51,7 +51,8 @@ func (a *Analyzer) Analyze(ctx context.Context, resource *k8s.Resource) (string,
 			{Role: openai.ChatMessageRoleSystem, Content: systemPrompt},
 			{Role: openai.ChatMessageRoleUser, Content: userMessage},
 		},
-		MaxTokens:   1024,
+		// Bumped from 1024 to 2048 — responses were getting cut off for larger resources
+		MaxTokens:   2048,
 		Temperature: 0.3,
 	})
 	if err != nil {
