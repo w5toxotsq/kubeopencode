@@ -9,9 +9,13 @@ import (
 
 // main is the entry point for the kubeopencode CLI tool.
 // It delegates execution to the root cobra command defined in cmd/root.go.
+//
+// Personal fork: using exit code 2 for usage/argument errors to better
+// distinguish between general errors (1) and misuse of the CLI (2),
+// following the convention used by many Unix tools (e.g. grep, curl).
 func main() {
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		os.Exit(2)
 	}
 }
