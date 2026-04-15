@@ -52,7 +52,8 @@ var analyzeCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(analyzeCmd)
-	analyzeCmd.Flags().StringVarP(&resourceType, "type", "t", "pod", "resource type (pod, deployment, service, etc.)")
+	// Default to "deployment" since that's what I use most often in my clusters
+	analyzeCmd.Flags().StringVarP(&resourceType, "type", "t", "deployment", "resource type (pod, deployment, service, etc.)")
 	analyzeCmd.Flags().StringVar(&resourceName, "name", "", "resource name")
 	analyzeCmd.MarkFlagRequired("name")
 	viper.BindEnv("openai_api_key", "OPENAI_API_KEY")
