@@ -16,6 +16,10 @@ import (
 //
 // Note: I also considered exit code 64 (EX_USAGE from sysexits.h) but
 // kept 2 for broader compatibility with shell scripting conventions.
+//
+// TODO: Look into wrapping errors with more context before printing,
+// e.g. including the subcommand name so failures are easier to trace
+// in scripts that chain multiple kubeopencode calls.
 func main() {
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
