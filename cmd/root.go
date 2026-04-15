@@ -38,7 +38,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&kubeconfig, "kubeconfig", "", "path to kubeconfig file")
 	// Default to empty string so kubectl falls back to the current context namespace
 	rootCmd.PersistentFlags().StringVarP(&namespace, "namespace", "n", "", "Kubernetes namespace (defaults to current context namespace)")
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "enable verbose output")
+	// Personal preference: default verbose to true so I always see config/debug info while learning
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", true, "enable verbose output")
 
 	viper.BindPFlag("kubeconfig", rootCmd.PersistentFlags().Lookup("kubeconfig"))
 	viper.BindPFlag("namespace", rootCmd.PersistentFlags().Lookup("namespace"))
