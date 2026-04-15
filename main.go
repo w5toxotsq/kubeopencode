@@ -13,6 +13,9 @@ import (
 // Personal fork: using exit code 2 for usage/argument errors to better
 // distinguish between general errors (1) and misuse of the CLI (2),
 // following the convention used by many Unix tools (e.g. grep, curl).
+//
+// Note: I also considered exit code 64 (EX_USAGE from sysexits.h) but
+// kept 2 for broader compatibility with shell scripting conventions.
 func main() {
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
