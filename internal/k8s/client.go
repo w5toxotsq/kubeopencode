@@ -30,6 +30,8 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	"service":     {Group: "", Version: "v1", Resource: "services"},
 	"configmap":   {Group: "", Version: "v1", Resource: "configmaps"},
 	"statefulset": {Group: "apps", Version: "v1", Resource: "statefulsets"},
+	// added ingress since I use it frequently in my homelab setup
+	"ingress":     {Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"},
 }
 
 func NewClient(kubeconfigPath string) (*Client, error) {
