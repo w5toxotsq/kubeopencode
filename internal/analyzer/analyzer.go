@@ -24,8 +24,8 @@ type Analyzer struct {
 func New(apiKey string) *Analyzer {
 	return &Analyzer{
 		client: openai.NewClient(apiKey),
-		// Using GPT-4o instead of GPT-4o-mini for better analysis quality
-		model: openai.GPT4o,
+		// Using GPT-4o-mini to keep API costs lower for personal use
+		model: openai.GPT4oMini,
 	}
 }
 
@@ -51,7 +51,7 @@ func (a *Analyzer) Analyze(ctx context.Context, resource *k8s.Resource) (string,
 			{Role: openai.ChatMessageRoleSystem, Content: systemPrompt},
 			{Role: openai.ChatMessageRoleUser, Content: userMessage},
 		},
-		MaxTokens:   2048,
+		MaxTokens:   1024,
 		Temperature: 0.3,
 	})
 	if err != nil {
