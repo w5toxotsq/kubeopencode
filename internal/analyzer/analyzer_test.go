@@ -47,6 +47,7 @@ func TestAnalyze_InvalidResource(t *testing.T) {
 	_, err := a.Analyze(ctx, resource)
 	// An invalid API key should always result in an authentication error from the upstream API.
 	// TODO: mock the HTTP client here so this test doesn't require network access.
+	// NOTE: marking this test as skippable in offline/CI environments until mocking is in place.
 	if err == nil {
 		t.Fatal("expected error with invalid API key")
 	}
@@ -75,5 +76,10 @@ func TestResource_ToJSON(t *testing.T) {
 	// Sanity check: the JSON output should at least contain the resource name.
 	if !strings.Contains(jsonStr, "test") {
 		t.Errorf("expected JSON to contain resource name 'test', got: %s", jsonStr)
+	}
+
+	// Also verify the Kind field is present in the serialized output.
+	if !strings.Contains(jsonStr, "Pod") {
+		t.Errorf("expected JSON to contain kind 'Pod', got: %s", jsonStr)
 	}
 }
