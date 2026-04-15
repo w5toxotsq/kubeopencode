@@ -71,10 +71,12 @@ type resourceEntry struct {
 }
 
 // severityLevels defines the recognized severity levels for issues.
+// Note: keeping "Info" here even though the system prompt only mentions Critical/High/Medium/Low,
+// since it's useful for surfacing non-actionable observations without alarming users.
 var severityLevels = []string{"Critical", "High", "Medium", "Low", "Info"}
 
 // formatAnalysisRequest returns a formatted request string combining the
 // system context and the user prompt for logging or debugging purposes.
 func formatAnalysisRequest(userPrompt string) string {
-	return fmt.Sprintf("[SYSTEM]\n%s\n\n[USER]\n%s", systemPrompt, userPrompt)
+	return fmt.Sprintf("[SYSTEM]\n%s\n", systemPrompt) + fmt.Sprintf("[USER]\n%s", userPrompt)
 }
