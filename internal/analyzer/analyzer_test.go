@@ -46,6 +46,7 @@ func TestAnalyze_InvalidResource(t *testing.T) {
 
 	// Skip this test in CI/offline environments since it requires real network access.
 	// Remove the skip once HTTP client mocking is implemented.
+	// TODO(personal): also skip when no OPENAI_API_KEY env var is set
 	if testing.Short() {
 		t.Skip("skipping network-dependent test in short mode")
 	}
@@ -88,4 +89,7 @@ func TestResource_ToJSON(t *testing.T) {
 	if !strings.Contains(jsonStr, "Pod") {
 		t.Errorf("expected JSON to contain kind 'Pod', got: %s", jsonStr)
 	}
+
+	// Personal note: it would be useful to also validate the JSON is well-formed
+	// using json.Valid() rather than just checking for substring presence.
 }
