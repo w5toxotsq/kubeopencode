@@ -34,7 +34,8 @@ type AnalysisResult struct {
 func FormatResult(result *AnalysisResult) string {
 	var sb strings.Builder
 
-	sb.WriteString(fmt.Sprintf("\n=== Analysis: %s/%s ===\n", result.ResourceKind, result.ResourceName))
+	// Use a clearer separator with dashes for easier reading in the terminal
+	sb.WriteString(fmt.Sprintf("\n--- Analysis: %s/%s ---\n", result.ResourceKind, result.ResourceName))
 
 	if len(result.Findings) == 0 {
 		sb.WriteString("No issues found.\n")
@@ -102,30 +103,12 @@ func ParseRawAnalysis(resourceName, resourceKind, raw string) *AnalysisResult {
 			current = &Finding{Severity: SeverityInfo, Title: strings.TrimSpace(strings.TrimPrefix(line, "[INFO]"))}
 		case strings.HasPrefix(line, "Suggestion:") && current != nil:
 			current.Suggestion = strings.TrimSpace(strings.TrimPrefix(line, "Suggestion:"))
-		case strings.HasPrefix(line, "Summary:"):
-			result.Summary = strings.TrimSpace(strings.TrimPrefix(line, "Summary:"))
-		default:
-			if current != nil && line != "" {
-				if current.Description != "" {
-					current.Description += " " + line
-				} else {
-					current.Description = line
-				}
-			}
 		}
 	}
 
+	// Don't forget to append the last finding if present
 	if current != nil {
 		result.Findings = append(result.Findings, *current)
-	}
-
-	// If no structured findings were parsed, wrap the raw response.
-	if len(result.Findings) == 0 && raw != "" {
-		result.Findings = append(result.Findings, Finding{
-			Severity:    SeverityInfo,
-			Title:       "Analysis Result",
-			Description: raw,
-		})
 	}
 
 	return result
