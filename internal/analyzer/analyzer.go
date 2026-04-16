@@ -24,8 +24,8 @@ type Analyzer struct {
 func New(apiKey string) *Analyzer {
 	return &Analyzer{
 		client: openai.NewClient(apiKey),
-		// Using GPT-4o-mini to keep API costs lower for personal use
-		model: openai.GPT4oMini,
+		// Switched to GPT-4o for better analysis quality — worth the extra cost for me
+		model: openai.GPT4o,
 	}
 }
 
