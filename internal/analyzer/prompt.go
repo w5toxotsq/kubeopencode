@@ -17,7 +17,7 @@ For each resource, you should:
 
 Be concise but thorough. Format your response with clear sections:
 - **Summary**: Brief overview of findings
-- **Issues Found**: List of problems with severity (Critical/High/Medium/Low)
+- **Issues Found**: List of problems with severity (Critical/High/Medium/Low/Info)
 - **Recommendations**: Specific actionable steps to remediate
 - **Best Practices**: Any additional suggestions for improvement`
 
@@ -59,7 +59,10 @@ func buildMultiResourcePrompt(resources []resourceEntry) string {
 		sb.WriteString("\n```\n\n")
 	}
 
-	sb.WriteString("Provide a consolidated analysis covering cross-resource issues, dependencies, and overall cluster health implications.")
+	// Personal preference: request a per-resource TL;DR table before the deep-dive
+	// so it's easy to spot the worst offenders at a glance.
+	sb.WriteString("Begin with a markdown table summarising each resource (name, kind, worst severity, one-line finding), ")
+	sb.WriteString("then provide a consolidated analysis covering cross-resource issues, dependencies, and overall cluster health implications.")
 
 	return sb.String()
 }
@@ -73,8 +76,6 @@ type resourceEntry struct {
 }
 
 // severityLevels defines the recognized severity levels for issues.
-// Note: keeping "Info" here even though the system prompt only mentions Critical/High/Medium/Low,
-// since it's useful for surfacing non-actionable observations without alarming users.
+// Includes "Info" in addition to the standard Critical/High/Medium/Low so that
+// purely informational observations can be surfaced without implying a problem.
 var severityLevels = []string{"Critical", "High", "Medium", "Low", "Info"}
-
-// formatAnalysisRequest returns a formatted reques
