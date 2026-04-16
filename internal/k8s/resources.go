@@ -21,6 +21,8 @@ const (
 	ResourceTypeSecret      ResourceType = "secrets"
 	ResourceTypeStatefulSet ResourceType = "statefulsets"
 	ResourceTypeDaemonSet   ResourceType = "daemonsets"
+	// Added Job support for my batch workload use case
+	ResourceTypeJob ResourceType = "jobs"
 )
 
 // groupVersionResources maps resource types to their GVR
@@ -32,6 +34,7 @@ var groupVersionResources = map[ResourceType]schema.GroupVersionResource{
 	ResourceTypeSecret:      {Group: "", Version: "v1", Resource: "secrets"},
 	ResourceTypeStatefulSet: {Group: "apps", Version: "v1", Resource: "statefulsets"},
 	ResourceTypeDaemonSet:   {Group: "apps", Version: "v1", Resource: "daemonsets"},
+	ResourceTypeJob:         {Group: "batch", Version: "v1", Resource: "jobs"},
 }
 
 // GetResource retrieves a single Kubernetes resource by name and namespace.
@@ -77,8 +80,8 @@ func (c *Client) ListResources(ctx context.Context, resourceType ResourceType, n
 // Returns types in sorted order for consistent, predictable output.
 func SupportedResourceTypes() []ResourceType {
 	types := make([]ResourceType, 0, len(groupVersionResources))
-	for rt := range groupVersionResources {
-		types = append(types, rt)
+	for k := range groupVersionResources {
+		types = append(types, k)
 	}
 	sort.Slice(types, func(i, j int) bool {
 		return types[i] < types[j]
