@@ -44,6 +44,12 @@ func TestAnalyze_InvalidResource(t *testing.T) {
 		},
 	}
 
+	// Skip this test in CI/offline environments since it requires real network access.
+	// Remove the skip once HTTP client mocking is implemented.
+	if testing.Short() {
+		t.Skip("skipping network-dependent test in short mode")
+	}
+
 	_, err := a.Analyze(ctx, resource)
 	// An invalid API key should always result in an authentication error from the upstream API.
 	// TODO: mock the HTTP client here so this test doesn't require network access.
