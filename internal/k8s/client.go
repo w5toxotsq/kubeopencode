@@ -35,6 +35,10 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	"ingress":     {Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"},
 	// added daemonset for monitoring agents (node-exporter, etc.)
 	"daemonset":   {Group: "apps", Version: "v1", Resource: "daemonsets"},
+	// added secret - useful for quickly inspecting (non-sensitive) metadata
+	"secret":      {Group: "", Version: "v1", Resource: "secrets"},
+	// added namespace for cluster-wide queries
+	"namespace":   {Group: "", Version: "v1", Resource: "namespaces"},
 }
 
 func NewClient(kubeconfigPath string) (*Client, error) {
