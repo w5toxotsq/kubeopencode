@@ -19,7 +19,8 @@ Be concise but thorough. Format your response with clear sections:
 - **Summary**: Brief overview of findings
 - **Issues Found**: List of problems with severity (Critical/High/Medium/Low/Info)
 - **Recommendations**: Specific actionable steps to remediate
-- **Best Practices**: Any additional suggestions for improvement`
+- **Best Practices**: Any additional suggestions for improvement
+- **References**: Links to relevant Kubernetes docs or CVEs where applicable`
 
 // buildAnalysisPrompt constructs the prompt for analyzing a Kubernetes resource.
 func buildAnalysisPrompt(resourceType, resourceName, namespace, resourceJSON string) string {
@@ -70,12 +71,3 @@ func buildMultiResourcePrompt(resources []resourceEntry) string {
 // resourceEntry holds the data needed to build a multi-resource prompt.
 type resourceEntry struct {
 	Kind      string
-	Name      string
-	Namespace string
-	JSON      string
-}
-
-// severityLevels defines the recognized severity levels for issues.
-// Includes "Info" in addition to the standard Critical/High/Medium/Low so that
-// purely informational observations can be surfaced without implying a problem.
-var severityLevels = []string{"Critical", "High", "Medium", "Low", "Info"}
