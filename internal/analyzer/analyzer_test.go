@@ -2,6 +2,7 @@ package analyzer
 
 import (
 	"context"
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -90,6 +91,8 @@ func TestResource_ToJSON(t *testing.T) {
 		t.Errorf("expected JSON to contain kind 'Pod', got: %s", jsonStr)
 	}
 
-	// Personal note: it would be useful to also validate the JSON is well-formed
-	// using json.Valid() rather than just checking for substring presence.
+	// Personal note: validate the JSON is well-formed using json.Valid().
+	if !json.Valid([]byte(jsonStr)) {
+		t.Errorf("expected valid JSON, got: %s", jsonStr)
+	}
 }
