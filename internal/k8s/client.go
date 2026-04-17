@@ -42,6 +42,10 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	// added job/cronjob - I run a bunch of batch workloads in my cluster
 	"job":         {Group: "batch", Version: "v1", Resource: "jobs"},
 	"cronjob":     {Group: "batch", Version: "v1", Resource: "cronjobs"},
+	// added persistentvolumeclaim - handy for debugging storage issues in my homelab
+	"persistentvolumeclaim": {Group: "", Version: "v1", Resource: "persistentvolumeclaims"},
+	// shorthand alias
+	"pvc":         {Group: "", Version: "v1", Resource: "persistentvolumeclaims"},
 }
 
 func NewClient(kubeconfigPath string) (*Client, error) {
