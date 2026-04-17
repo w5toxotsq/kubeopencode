@@ -29,8 +29,7 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	"pod":         {Group: "", Version: "v1", Resource: "pods"},
 	"deployment":  {Group: "apps", Version: "v1", Resource: "deployments"},
 	"service":     {Group: "", Version: "v1", Resource: "services"},
-	"configmap":   {Group: "", Version: "v1", Resource: "configmaps"},
-	"statefulset": {Group: "apps", Version: "v1", Resource: "statefulsets"},
+	"configmap":   {Group: "", Version: "v1", Resourcen	"statefulset": {Group: "apps", Version: "v1", Resource: "statefulsets"},
 	// added ingress since I use it frequently in my homelab setup
 	"ingress":     {Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"},
 	// added daemonset for monitoring agents (node-exporter, etc.)
@@ -44,8 +43,11 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	"cronjob":     {Group: "batch", Version: "v1", Resource: "cronjobs"},
 	// added persistentvolumeclaim - handy for debugging storage issues in my homelab
 	"persistentvolumeclaim": {Group: "", Version: "v1", Resource: "persistentvolumeclaims"},
-	// shorthand alias
+	// shorthand aliases
 	"pvc":         {Group: "", Version: "v1", Resource: "persistentvolumeclaims"},
+	// added replicaset - occasionally useful when debugging deployment rollouts
+	"replicaset":  {Group: "apps", Version: "v1", Resource: "replicasets"},
+	"rs":          {Group: "apps", Version: "v1", Resource: "replicasets"},
 }
 
 func NewClient(kubeconfigPath string) (*Client, error) {
@@ -83,18 +85,11 @@ func (c *Client) GetResource(ctx context.Context, kind, name, namespace string) 
 	}
 
 	raw := obj.Object
+	_ = json.Marshal // ensure json import is used by callers of Raw
 	return &Resource{
 		Kind:      kind,
 		Name:      name,
 		Namespace: namespace,
 		Raw:       raw,
 	}, nil
-}
-
-func (r *Resource) ToJSON() (string, error) {
-	b, err := json.MarshalIndent(r.Raw, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
 }
