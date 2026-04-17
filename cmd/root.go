@@ -60,6 +60,12 @@ func initConfig() {
 		viper.SetConfigName(".kubeopencode")
 	}
 	viper.AutomaticEnv()
+	// Also respect KUBECONFIG env var if --kubeconfig flag wasn't explicitly set
+	if kubeconfig == "" {
+		if envKubeconfig := os.Getenv("KUBECONFIG"); envKubeconfig != "" {
+			viper.Set("kubeconfig", envKubeconfig)
+		}
+	}
 	// Log which config file is being used when verbose mode is on
 	if err := viper.ReadInConfig(); err == nil && verbose {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
