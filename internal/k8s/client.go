@@ -39,6 +39,9 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	"secret":      {Group: "", Version: "v1", Resource: "secrets"},
 	// added namespace for cluster-wide queries
 	"namespace":   {Group: "", Version: "v1", Resource: "namespaces"},
+	// added job/cronjob - I run a bunch of batch workloads in my cluster
+	"job":         {Group: "batch", Version: "v1", Resource: "jobs"},
+	"cronjob":     {Group: "batch", Version: "v1", Resource: "cronjobs"},
 }
 
 func NewClient(kubeconfigPath string) (*Client, error) {
