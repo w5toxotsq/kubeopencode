@@ -20,6 +20,9 @@ import (
 // TODO: Look into wrapping errors with more context before printing,
 // e.g. including the subcommand name so failures are easier to trace
 // in scripts that chain multiple kubeopencode calls.
+//
+// TODO: Consider adding a --version flag that prints build info (git sha +
+// build date) so I can quickly tell which version is running in my env.
 func main() {
 	if err := cmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
