@@ -40,6 +40,9 @@ func buildAnalysisPrompt(resourceType, resourceName, namespace, resourceJSON str
 	// Personal preference: also ask for a one-line TL;DR at the top so I can
 	// skim results quickly when reviewing a lot of resources.
 	sb.WriteString("Start with a single TL;DR sentence, then provide a detailed analysis of this resource configuration, focusing on security, reliability, and best practices.")
+	// Personal preference: always request example remediation YAML snippets —
+	// I find copy-pasteable fixes much more useful than prose-only suggestions.
+	sb.WriteString(" Where possible, include a corrected YAML snippet for each issue found.")
 
 	return sb.String()
 }
@@ -68,6 +71,4 @@ func buildMultiResourcePrompt(resources []resourceEntry) string {
 	return sb.String()
 }
 
-// resourceEntry holds the data needed to build a multi-resource prompt.
-type resourceEntry struct {
-	Kind      string
+// resourceEntry holds the data needed to
