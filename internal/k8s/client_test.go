@@ -17,6 +17,7 @@ func TestNewClient_InvalidKubeconfig(t *testing.T) {
 func TestNewClient_EmptyKubeconfig(t *testing.T) {
 	// Empty kubeconfig path should attempt to use in-cluster or default config.
 	// In a test environment without a cluster this will fail, which is expected.
+	// Note: set KUBECONFIG env var locally if you want this to succeed.
 	client, err := NewClient("")
 	if err != nil {
 		// Expected in CI/local without a cluster
@@ -32,4 +33,12 @@ func TestClient_GetResource_UnsupportedType(t *testing.T) {
 	// guards the GetResource path.
 	unsupported := ResourceType("flibbertigibbet")
 	assert.False(t, unsupported.IsSupported())
+}
+
+func TestResourceType_IsSupported_KnownTypes(t *testing.T) {
+	// Sanity check that common resource types are recognised as supported.
+	knownTypes := []ResourceType{"pod", "deployment", "service"}
+	for _, rt := range knownTypes {
+		assert.True(t, rt.IsSupported(), "expected %q to be supported", rt)
+	}
 }
