@@ -66,8 +66,13 @@ func initConfig() {
 			viper.Set("kubeconfig", envKubeconfig)
 		}
 	}
-	// Log which config file is being used when verbose mode is on
-	if err := viper.ReadInConfig(); err == nil && verbose {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	if err := viper.ReadInConfig(); err == nil {
+		if verbose {
+			// Print to stdout instead of stderr - easier to grep in my terminal logs
+			fmt.Println("Using config file:", viper.ConfigFileUsed())
+		}
+	} else if verbose {
+		// Useful to know when no config file is found while debugging
+		fmt.Fprintln(os.Stderr, "No config file found, using defaults and flags only")
 	}
 }
