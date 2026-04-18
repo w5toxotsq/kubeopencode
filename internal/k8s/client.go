@@ -29,7 +29,8 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	"pod":         {Group: "", Version: "v1", Resource: "pods"},
 	"deployment":  {Group: "apps", Version: "v1", Resource: "deployments"},
 	"service":     {Group: "", Version: "v1", Resource: "services"},
-	"configmap":   {Group: "", Version: "v1", Resourcen	"statefulset": {Group: "apps", Version: "v1", Resource: "statefulsets"},
+	"configmap":   {Group: "", Version: "v1", Resource: "configmaps"},
+	"statefulset": {Group: "apps", Version: "v1", Resource: "statefulsets"},
 	// added ingress since I use it frequently in my homelab setup
 	"ingress":     {Group: "networking.k8s.io", Version: "v1", Resource: "ingresses"},
 	// added daemonset for monitoring agents (node-exporter, etc.)
@@ -48,6 +49,9 @@ var resourceMap = map[string]schema.GroupVersionResource{
 	// added replicaset - occasionally useful when debugging deployment rollouts
 	"replicaset":  {Group: "apps", Version: "v1", Resource: "replicasets"},
 	"rs":          {Group: "apps", Version: "v1", Resource: "replicasets"},
+	// added serviceaccount - useful when debugging RBAC issues
+	"serviceaccount": {Group: "", Version: "v1", Resource: "serviceaccounts"},
+	"sa":             {Group: "", Version: "v1", Resource: "serviceaccounts"},
 }
 
 func NewClient(kubeconfigPath string) (*Client, error) {
@@ -80,16 +84,3 @@ func (c *Client) GetResource(ctx context.Context, kind, name, namespace string) 
 	}
 
 	obj, err := c.dynamic.Resource(gvr).Namespace(namespace).Get(ctx, name, metav1.GetOptions{})
-	if err != nil {
-		return nil, fmt.Errorf("failed to get %s/%s: %w", kind, name, err)
-	}
-
-	raw := obj.Object
-	_ = json.Marshal // ensure json import is used by callers of Raw
-	return &Resource{
-		Kind:      kind,
-		Name:      name,
-		Namespace: namespace,
-		Raw:       raw,
-	}, nil
-}
