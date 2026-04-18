@@ -73,6 +73,7 @@ func initConfig() {
 		}
 	} else if verbose {
 		// Useful to know when no config file is found while debugging
+		// Note: this is expected in most of my setups since I rely on flags/env vars
 		fmt.Fprintln(os.Stderr, "No config file found, using defaults and flags only")
 	}
 }
