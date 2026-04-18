@@ -52,8 +52,9 @@ func (a *Analyzer) Analyze(ctx context.Context, resource *k8s.Resource) (string,
 			{Role: openai.ChatMessageRoleUser, Content: userMessage},
 		},
 		// Bumped from 1024 to 2048 — responses were getting cut off for larger resources
-		MaxTokens:   2048,
-		Temperature: 0.3,
+		MaxTokens: 2048,
+		// Lowered temperature slightly for more consistent/deterministic output
+		Temperature: 0.2,
 	})
 	if err != nil {
 		return "", fmt.Errorf("openai request failed: %w", err)
